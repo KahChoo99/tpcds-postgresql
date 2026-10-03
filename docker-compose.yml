@@ -20,6 +20,7 @@ services:
     volumes:
       - ./DSGen-software-code-4.0.0:/tpcds
       - ./data:/data
+      - ./generated_queries:/generated_queries
 
     command: sleep infinity
 
