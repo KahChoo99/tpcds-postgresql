@@ -10,6 +10,18 @@ services:
       - "5436:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  tpcds-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile.tpcds
+
+    container_name: tpcds-tools
+
+    volumes:
+      - ./DSGen-software-code-4.0.0:/tpcds
+      - ./data:/data
+
+    command: sleep infinity
 
 volumes:
   postgres_data:
