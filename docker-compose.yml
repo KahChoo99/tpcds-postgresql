@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16
-    container_name: tpcds-postgres
+    container_name: tpcds-postgres #main project container name
     environment:
       POSTGRES_DB: tpcds
       POSTGRES_USER: tpcds
@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: Dockerfile.tpcds
 
-    container_name: tpcds-tools
+    container_name: tpcds-tools #for data generation and loading into postgres, or else
 
     volumes:
       - ./DSGen-software-code-4.0.0:/tpcds
