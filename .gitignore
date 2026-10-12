@@ -18,3 +18,7 @@ data/
 # Python
 __pycache__/
 *.pyc
+
+# query templates for Window running
+DSGen-software-code-4.0.0/query_templates/
+*.tpl
