@@ -21,14 +21,25 @@ def execute_query(query_num, input_dir, output_dir, container):
     command = ["docker", "exec", "-i", container, "psql", "-U", "tpcds", "-d", "tpcds"]
     
     try:
+        # Run the command
         result = subprocess.run(
-            command, input=explain_sql, text=True, capture_output=True, check=True, encoding="utf-8"
+            command, input=explain_sql, text=True, capture_output=True, encoding="utf-8"
         )
-        output_file.write_text(result.stdout, encoding="utf-8")
-        print(f"  -> Saved plan to {output_file.name}")
-    except subprocess.CalledProcessError as e:
-        print(f"  -> ERROR running Query {query_num}:\n{e.stderr}")
-        output_file.write_text(f"ERROR:\n{e.stderr}", encoding="utf-8")
+        
+        # Combine standard output and standard error
+        final_output = result.stdout
+        if result.stderr:
+            final_output += f"\n--- ERROR LOG ---\n{result.stderr}"
+            
+        output_file.write_text(final_output.strip(), encoding="utf-8")
+        
+        if "ERROR:" in result.stderr:
+            print(f"  -> ERROR running Query {query_num}. Check {output_file.name} for details.")
+        else:
+            print(f"  -> Saved plan to {output_file.name}")
+            
+    except Exception as e:
+        print(f"  -> CRITICAL SCRIPT ERROR on Query {query_num}:\n{e}")
 
 def main():
     parser = argparse.ArgumentParser(description="Execute queries inside PostgreSQL Docker.")
