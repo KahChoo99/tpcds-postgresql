@@ -22,3 +22,5 @@ __pycache__/
 # query templates for Window running
 DSGen-software-code-4.0.0/query_templates/
 *.tpl
+
+generated_queries/
