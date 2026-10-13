@@ -2,6 +2,7 @@
 *.dat
 *.dat.gz
 data/
+data-clean/
 
 # PostgreSQL
 *.sql.gz
