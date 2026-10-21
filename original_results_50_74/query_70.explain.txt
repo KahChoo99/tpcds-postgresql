@@ -1,0 +1,79 @@
+QUERY PLAN                                                                                                                       
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=52163.85..52163.86 rows=1 width=286) (actual time=387.790..387.876 rows=100 loops=1)
+   Buffers: shared hit=1047671 read=39994, temp read=7217 written=6605
+   CTE v1
+     ->  WindowAgg  (cost=49721.17..51247.51 rows=8329 width=300) (actual time=253.796..347.067 rows=32122 loops=1)
+           Buffers: shared hit=1047668 read=39994, temp read=5963 written=5978
+           ->  WindowAgg  (cost=49721.17..51060.11 rows=8329 width=268) (actual time=253.791..337.384 rows=32122 loops=1)
+                 Buffers: shared hit=1047668 read=39994, temp read=5963 written=5978
+                 ->  Finalize GroupAggregate  (cost=49721.17..50851.88 rows=8329 width=260) (actual time=253.788..327.990 rows=32122 loops=1)
+                       Group Key: item.i_category, item.i_brand, call_center.cc_name, date_dim.d_year, date_dim.d_moy
+                       Buffers: shared hit=1047668 read=39994, temp read=5963 written=5978
+                       ->  Gather Merge  (cost=49721.17..50626.32 rows=6940 width=260) (actual time=253.785..311.343 rows=72960 loops=1)
+                             Workers Planned: 2
+                             Workers Launched: 2
+                             Buffers: shared hit=1047668 read=39994, temp read=5963 written=5978
+                             ->  Partial GroupAggregate  (cost=48721.15..48825.25 rows=3470 width=260) (actual time=251.724..296.947 rows=24320 loops=3)
+                                   Group Key: item.i_category, item.i_brand, call_center.cc_name, date_dim.d_year, date_dim.d_moy
+                                   Buffers: shared hit=1047668 read=39994, temp read=5963 written=5978
+                                   ->  Sort  (cost=48721.15..48729.82 rows=3470 width=234) (actual time=251.716..277.270 rows=116524 loops=3)
+                                         Sort Key: item.i_category, item.i_brand, call_center.cc_name, date_dim.d_year, date_dim.d_moy
+                                         Sort Method: external merge  Disk: 15856kB
+                                         Buffers: shared hit=1047668 read=39994, temp read=5963 written=5978
+                                         Worker 0:  Sort Method: external merge  Disk: 16160kB
+                                         Worker 1:  Sort Method: external merge  Disk: 15688kB
+                                         ->  Nested Loop  (cost=2405.15..48517.10 rows=3470 width=234) (actual time=15.210..140.515 rows=116524 loops=3)
+                                               Buffers: shared hit=1047624 read=39994
+                                               ->  Hash Join  (cost=2404.86..47445.89 rows=3470 width=136) (actual time=15.196..57.252 rows=116524 loops=3)
+                                                     Hash Cond: (catalog_sales.cs_call_center_sk = call_center.cc_call_center_sk)
+                                                     Buffers: shared hit=60 read=38837
+                                                     ->  Parallel Hash Join  (cost=2393.96..47424.87 rows=3486 width=22) (actual time=15.166..48.820 rows=116823 loops=3)
+                                                           Hash Cond: (catalog_sales.cs_sold_date_sk = date_dim.d_date_sk)
+                                                           Buffers: shared hit=36 read=38836
+                                                           ->  Parallel Seq Scan on catalog_sales  (cost=0.00..43454.19 rows=600619 width=18) (actual time=0.008..22.577 rows=480516 loops=3)
+                                                                 Buffers: shared read=37448
+                                                           ->  Parallel Hash  (cost=2390.82..2390.82 rows=251 width=12) (actual time=1.778..1.779 rows=143 loops=3)
+                                                                 Buckets: 1024  Batches: 1  Memory Usage: 104kB
+                                                                 Buffers: shared hit=36 read=1388
+                                                                 ->  Parallel Seq Scan on date_dim  (cost=0.00..2390.82 rows=251 width=12) (actual time=0.868..1.747 rows=143 loops=3)
+                                                                       Filter: ((d_year = 2000) OR ((d_year = 1999) AND (d_moy = 12)) OR ((d_year = 2001) AND (d_moy = 1)))
+                                                                       Rows Removed by Filter: 24207
+                                                                       Buffers: shared hit=36 read=1388
+                                                     ->  Hash  (cost=10.40..10.40 rows=40 width=122) (actual time=0.023..0.023 rows=6 loops=3)
+                                                           Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                           Buffers: shared hit=2 read=1
+                                                           ->  Seq Scan on call_center  (cost=0.00..10.40 rows=40 width=122) (actual time=0.020..0.021 rows=6 loops=3)
+                                                                 Buffers: shared hit=2 read=1
+                                               ->  Index Scan using item_pkey on item  (cost=0.29..0.31 rows=1 width=106) (actual time=0.001..0.001 rows=1 loops=349573)
+                                                     Index Cond: (i_item_sk = catalog_sales.cs_item_sk)
+                                                     Buffers: shared hit=1047564 read=1157
+   ->  Sort  (cost=916.34..916.35 rows=1 width=286) (actual time=387.789..387.793 rows=100 loops=1)
+         Sort Key: ((v1.sum_sales - v1.avg_monthly_sales)), v1_lag.sum_sales
+         Sort Method: top-N heapsort  Memory: 48kB
+         Buffers: shared hit=348234 read=13294, temp read=3236 written=2614
+         ->  Hash Join  (cost=614.39..916.33 rows=1 width=286) (actual time=376.261..385.349 rows=23870 loops=1)
+               Hash Cond: ((v1_lead.i_category = v1.i_category) AND (v1_lead.i_brand = v1.i_brand) AND ((v1_lead.cc_name)::text = (v1.cc_name)::text) AND ((v1_lead.rn - 1) = v1.rn))
+               Buffers: shared hit=348231 read=13294, temp read=3236 written=2614
+               ->  CTE Scan on v1 v1_lead  (cost=0.00..166.58 rows=8329 width=566) (actual time=253.797..255.212 rows=32122 loops=1)
+                     Buffers: shared hit=348231 read=13294, temp read=1096 written=1987
+               ->  Hash  (cost=614.37..614.37 rows=1 width=1172) (actual time=122.454..122.455 rows=24797 loops=1)
+                     Buckets: 32768 (originally 1024)  Batches: 1 (originally 1)  Memory Usage: 7998kB
+                     Buffers: temp read=2140 written=627
+                     ->  Hash Join  (cost=312.44..614.37 rows=1 width=1172) (actual time=109.384..117.831 rows=24797 loops=1)
+                           Hash Cond: ((v1_lag.i_category = v1.i_category) AND (v1_lag.i_brand = v1.i_brand) AND ((v1_lag.cc_name)::text = (v1.cc_name)::text) AND ((v1_lag.rn + 1) = v1.rn))
+                           Buffers: temp read=2140 written=627
+                           ->  CTE Scan on v1 v1_lag  (cost=0.00..166.58 rows=8329 width=566) (actual time=0.000..1.442 rows=32122 loops=1)
+                                 Buffers: temp read=627 written=1
+                           ->  Hash  (cost=312.34..312.34 rows=5 width=606) (actual time=109.375..109.375 rows=24951 loops=1)
+                                 Buckets: 32768 (originally 1024)  Batches: 1 (originally 1)  Memory Usage: 4798kB
+                                 Buffers: temp read=1513 written=626
+                                 ->  CTE Scan on v1  (cost=0.00..312.34 rows=5 width=606) (actual time=0.052..105.029 rows=25393 loops=1)
+                                       Filter: ((avg_monthly_sales > '0'::numeric) AND (d_year = 2000) AND (CASE WHEN (avg_monthly_sales > '0'::numeric) THEN (abs((sum_sales - avg_monthly_sales)) / avg_monthly_sales) ELSE NULL::numeric END > 0.1))
+                                       Rows Removed by Filter: 6729
+                                       Buffers: temp read=1513 written=626
+ Planning:
+   Buffers: shared hit=404 read=52
+ Planning Time: 0.854 ms
+ Execution Time: 388.793 ms
+(76 rows)

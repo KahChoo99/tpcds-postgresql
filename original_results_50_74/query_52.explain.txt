@@ -1,0 +1,46 @@
+QUERY PLAN                                                                                                                                              
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=9396.46..9396.47 rows=5 width=36) (actual time=164.840..164.922 rows=100 loops=1)
+   Buffers: shared hit=8291 read=11552
+   ->  Sort  (cost=9396.46..9396.47 rows=5 width=36) (actual time=164.840..164.917 rows=100 loops=1)
+         Sort Key: (sum(CASE WHEN (store_returns.sr_return_quantity IS NOT NULL) THEN (((store_sales.ss_quantity - store_returns.sr_return_quantity))::numeric * store_sales.ss_sales_price) ELSE ((store_sales.ss_quantity)::numeric * store_sales.ss_sales_price) END)), store_sales.ss_customer_sk
+         Sort Method: top-N heapsort  Memory: 31kB
+         Buffers: shared hit=8291 read=11552
+         ->  Finalize GroupAggregate  (cost=9395.78..9396.40 rows=5 width=36) (actual time=163.321..164.654 rows=3472 loops=1)
+               Group Key: store_sales.ss_customer_sk
+               Buffers: shared hit=8288 read=11552
+               ->  Gather Merge  (cost=9395.78..9396.31 rows=4 width=36) (actual time=163.318..163.996 rows=3527 loops=1)
+                     Workers Planned: 2
+                     Workers Launched: 2
+                     Buffers: shared hit=8288 read=11552
+                     ->  Partial GroupAggregate  (cost=8395.76..8395.82 rows=2 width=36) (actual time=162.500..162.844 rows=1176 loops=3)
+                           Group Key: store_sales.ss_customer_sk
+                           Buffers: shared hit=8288 read=11552
+                           ->  Sort  (cost=8395.76..8395.76 rows=2 width=18) (actual time=162.493..162.533 rows=1248 loops=3)
+                                 Sort Key: store_sales.ss_customer_sk
+                                 Sort Method: quicksort  Memory: 105kB
+                                 Buffers: shared hit=8288 read=11552
+                                 Worker 0:  Sort Method: quicksort  Memory: 105kB
+                                 Worker 1:  Sort Method: quicksort  Memory: 107kB
+                                 ->  Nested Loop  (cost=3.38..8395.75 rows=2 width=18) (actual time=0.383..162.177 rows=1248 loops=3)
+                                       Buffers: shared hit=8274 read=11552
+                                       ->  Hash Join  (cost=2.95..6356.53 rows=1540 width=12) (actual time=0.108..9.425 rows=1248 loops=3)
+                                             Hash Cond: (store_returns.sr_reason_sk = reason.r_reason_sk)
+                                             Buffers: shared hit=28 read=4824
+                                             ->  Parallel Seq Scan on store_returns  (cost=0.00..6021.98 rows=119798 width=16) (actual time=0.078..4.961 rows=95838 loops=3)
+                                                   Buffers: shared read=4824
+                                             ->  Hash  (cost=2.94..2.94 rows=1 width=4) (actual time=0.009..0.009 rows=1 loops=3)
+                                                   Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                   Buffers: shared hit=6
+                                                   ->  Seq Scan on reason  (cost=0.00..2.94 rows=1 width=4) (actual time=0.003..0.008 rows=1 loops=3)
+                                                         Filter: (r_reason_desc = 'Did not get it on time'::bpchar)
+                                                         Rows Removed by Filter: 74
+                                                         Buffers: shared hit=6
+                                       ->  Index Scan using store_sales_pkey on store_sales  (cost=0.43..1.32 rows=1 width=22) (actual time=0.122..0.122 rows=1 loops=3743)
+                                             Index Cond: ((ss_item_sk = store_returns.sr_item_sk) AND (ss_ticket_number = store_returns.sr_ticket_number))
+                                             Buffers: shared hit=8246 read=6728
+ Planning:
+   Buffers: shared hit=184 read=14
+ Planning Time: 2.755 ms
+ Execution Time: 164.960 ms
+(43 rows)

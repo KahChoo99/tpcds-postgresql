@@ -1,0 +1,44 @@
+QUERY PLAN                                                                                      
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=5737.75..5744.00 rows=2 width=125) (actual time=7.113..8.308 rows=3 loops=1)
+   Buffers: shared hit=9504 read=181
+   ->  Group  (cost=5737.75..5744.00 rows=2 width=125) (actual time=7.112..8.306 rows=3 loops=1)
+         Group Key: item.i_item_id, item.i_item_desc, item.i_current_price
+         Buffers: shared hit=9504 read=181
+         ->  Nested Loop  (cost=5737.75..5742.69 rows=175 width=125) (actual time=7.111..7.836 rows=8627 loops=1)
+               Buffers: shared hit=9504 read=181
+               ->  Gather Merge  (cost=5737.32..5737.44 rows=1 width=133) (actual time=7.101..7.126 rows=39 loops=1)
+                     Workers Planned: 1
+                     Workers Launched: 1
+                     Buffers: shared hit=9286 read=176
+                     ->  Sort  (cost=4737.31..4737.31 rows=1 width=133) (actual time=6.049..6.050 rows=20 loops=2)
+                           Sort Key: item.i_item_id, item.i_item_desc, item.i_current_price
+                           Sort Method: quicksort  Memory: 28kB
+                           Buffers: shared hit=9286 read=176
+                           Worker 0:  Sort Method: quicksort  Memory: 27kB
+                           ->  Nested Loop  (cost=0.43..4737.30 rows=1 width=133) (actual time=3.901..6.031 rows=20 loops=2)
+                                 Buffers: shared hit=9264 read=176
+                                 ->  Parallel Seq Scan on item  (cost=0.00..1495.76 rows=1 width=129) (actual time=0.413..1.002 rows=2 loops=2)
+                                       Filter: ((i_current_price >= '69'::numeric) AND (i_current_price <= '99'::numeric) AND (i_manufact_id = ANY ('{105,513,180,137}'::integer[])))
+                                       Rows Removed by Filter: 8998
+                                       Buffers: shared hit=1284
+                                 ->  Nested Loop  (cost=0.43..3240.93 rows=60 width=4) (actual time=1.432..2.010 rows=8 loops=5)
+                                       Buffers: shared hit=7980 read=176
+                                       ->  Seq Scan on date_dim  (cost=0.00..2519.73 rows=60 width=4) (actual time=0.923..1.920 rows=61 loops=5)
+                                             Filter: ((d_date >= '1998-06-06'::date) AND (d_date <= '1998-08-05'::date))
+                                             Rows Removed by Filter: 72988
+                                             Buffers: shared hit=7120
+                                       ->  Index Scan using inventory_pkey on inventory  (cost=0.43..12.01 rows=1 width=8) (actual time=0.001..0.001 rows=0 loops=305)
+                                             Index Cond: ((inv_date_sk = date_dim.d_date_sk) AND (inv_item_sk = item.i_item_sk))
+                                             Filter: ((inv_quantity_on_hand >= 100) AND (inv_quantity_on_hand <= 500))
+                                             Rows Removed by Filter: 0
+                                             Buffers: shared hit=860 read=176
+               ->  Index Only Scan using store_sales_pkey on store_sales  (cost=0.43..3.50 rows=175 width=4) (actual time=0.002..0.009 rows=221 loops=39)
+                     Index Cond: (ss_item_sk = inventory.inv_item_sk)
+                     Heap Fetches: 0
+                     Buffers: shared hit=218 read=5
+ Planning:
+   Buffers: shared hit=357 read=9
+ Planning Time: 0.508 ms
+ Execution Time: 8.342 ms
+(41 rows)

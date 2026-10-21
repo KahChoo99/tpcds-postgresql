@@ -1,0 +1,71 @@
+QUERY PLAN                                                                                           
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=9770.14..9772.18 rows=1 width=401) (actual time=997.623..997.725 rows=0 loops=1)
+   Buffers: shared hit=998382 read=364462
+   ->  GroupAggregate  (cost=9770.14..9772.18 rows=1 width=401) (actual time=997.622..997.724 rows=0 loops=1)
+         Group Key: item.i_item_id, item.i_item_desc, store.s_store_id, store.s_store_name
+         Buffers: shared hit=998382 read=364462
+         ->  Nested Loop  (cost=9770.14..9772.15 rows=1 width=317) (actual time=997.621..997.723 rows=0 loops=1)
+               Buffers: shared hit=998382 read=364462
+               ->  Nested Loop  (cost=9769.85..9771.83 rows=1 width=321) (actual time=997.621..997.722 rows=0 loops=1)
+                     Buffers: shared hit=998382 read=364462
+                     ->  Nested Loop  (cost=9769.56..9771.51 rows=1 width=325) (actual time=323.441..997.394 rows=8 loops=1)
+                           Join Filter: (catalog_sales.cs_item_sk = item.i_item_sk)
+                           Buffers: shared hit=998380 read=364440
+                           ->  Gather Merge  (cost=9769.13..9769.25 rows=1 width=337) (actual time=141.175..146.483 rows=11225 loops=1)
+                                 Workers Planned: 2
+                                 Workers Launched: 2
+                                 Buffers: shared hit=101720 read=23235
+                                 ->  Sort  (cost=8769.11..8769.11 rows=1 width=337) (actual time=140.148..140.682 rows=3742 loops=3)
+                                       Sort Key: item.i_item_id, item.i_item_desc, store.s_store_id, store.s_store_name
+                                       Sort Method: quicksort  Memory: 821kB
+                                       Buffers: shared hit=101720 read=23235
+                                       Worker 0:  Sort Method: quicksort  Memory: 839kB
+                                       Worker 1:  Sort Method: quicksort  Memory: 833kB
+                                       ->  Nested Loop  (cost=2177.72..8769.10 rows=1 width=337) (actual time=1.408..135.917 rows=3742 loops=3)
+                                             Buffers: shared hit=101690 read=23235
+                                             ->  Nested Loop  (cost=2177.43..8768.79 rows=1 width=214) (actual time=1.399..131.810 rows=3742 loops=3)
+                                                   Buffers: shared hit=68013 read=23235
+                                                   ->  Nested Loop  (cost=2177.29..8768.63 rows=1 width=32) (actual time=1.200..129.211 rows=3838 loops=3)
+                                                         Buffers: shared hit=45563 read=23233
+                                                         ->  Parallel Hash Join  (cost=2176.86..8513.33 rows=191 width=16) (actual time=1.144..10.736 rows=5204 loops=3)
+                                                               Hash Cond: (store_returns.sr_returned_date_sk = d2.d_date_sk)
+                                                               Buffers: shared hit=1518 read=4824
+                                                               ->  Parallel Seq Scan on store_returns  (cost=0.00..6021.98 rows=119798 width=20) (actual time=0.009..4.961 rows=95838 loops=3)
+                                                                     Buffers: shared read=4824
+                                                               ->  Parallel Hash  (cost=2175.97..2175.97 rows=71 width=4) (actual time=1.079..1.080 rows=41 loops=3)
+                                                                     Buckets: 1024  Batches: 1  Memory Usage: 104kB
+                                                                     Buffers: shared hit=1424
+                                                                     ->  Parallel Seq Scan on date_dim d2  (cost=0.00..2175.97 rows=71 width=4) (actual time=0.510..1.057 rows=41 loops=3)
+                                                                           Filter: ((d_moy >= 4) AND (d_moy <= 7) AND (d_year = 1999))
+                                                                           Rows Removed by Filter: 24309
+                                                                           Buffers: shared hit=1424
+                                                         ->  Index Scan using store_sales_pkey on store_sales  (cost=0.43..1.33 rows=1 width=24) (actual time=0.023..0.023 rows=1 loops=15613)
+                                                               Index Cond: ((ss_item_sk = store_returns.sr_item_sk) AND (ss_ticket_number = store_returns.sr_ticket_number))
+                                                               Filter: (store_returns.sr_customer_sk = ss_customer_sk)
+                                                               Rows Removed by Filter: 0
+                                                               Buffers: shared hit=44045 read=18409
+                                                   ->  Index Scan using store_pkey on store  (cost=0.14..0.16 rows=1 width=190) (actual time=0.000..0.000 rows=1 loops=11513)
+                                                         Index Cond: (s_store_sk = store_sales.ss_store_sk)
+                                                         Buffers: shared hit=22450 read=2
+                                             ->  Index Scan using item_pkey on item  (cost=0.29..0.31 rows=1 width=123) (actual time=0.001..0.001 rows=1 loops=11225)
+                                                   Index Cond: (i_item_sk = store_sales.ss_item_sk)
+                                                   Buffers: shared hit=33677
+                           ->  Index Scan using catalog_sales_pkey on catalog_sales  (cost=0.43..2.25 rows=1 width=16) (actual time=0.076..0.076 rows=0 loops=11225)
+                                 Index Cond: (cs_item_sk = store_sales.ss_item_sk)
+                                 Filter: (cs_bill_customer_sk = store_sales.ss_customer_sk)
+                                 Rows Removed by Filter: 107
+                                 Buffers: shared hit=896660 read=341205
+                     ->  Index Scan using date_dim_pkey on date_dim d1  (cost=0.29..0.32 rows=1 width=4) (actual time=0.040..0.040 rows=0 loops=8)
+                           Index Cond: (d_date_sk = store_sales.ss_sold_date_sk)
+                           Filter: ((d_moy = 4) AND (d_year = 1999))
+                           Rows Removed by Filter: 1
+                           Buffers: shared hit=2 read=22
+               ->  Index Scan using date_dim_pkey on date_dim d3  (cost=0.29..0.32 rows=1 width=4) (never executed)
+                     Index Cond: (d_date_sk = catalog_sales.cs_sold_date_sk)
+                     Filter: (d_year = ANY ('{1999,2000,2001}'::integer[]))
+ Planning:
+   Buffers: shared hit=539 read=1
+ Planning Time: 6.385 ms
+ Execution Time: 997.801 ms
+(68 rows)
