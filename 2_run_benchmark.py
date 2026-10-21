@@ -54,8 +54,11 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     query_list = []
+    
     if args.query.lower() == "all":
         query_list = list(range(1, 100))
+    elif "," in args.query:
+        query_list = [int(q.strip()) for q in args.query.split(",")]
     elif "-" in args.query:
         start, end = map(int, args.query.split("-"))
         query_list = list(range(start, end + 1))

@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16
     container_name: tpcds-postgres #main project container name
+    shm_size: '1gb'
     environment:
       POSTGRES_DB: tpcds
       POSTGRES_USER: tpcds
@@ -11,6 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./data-clean:/data:ro
+      - ./benchmarks:/benchmarks:ro
   tpcds-tools:
     build:
       context: .
@@ -22,6 +24,7 @@ services:
       - ./DSGen-software-code-4.0.0:/tpcds
       - ./data:/data
       - ./generated_queries:/generated_queries
+      - ./benchmarks:/benchmarks
 
     command: sleep infinity
 

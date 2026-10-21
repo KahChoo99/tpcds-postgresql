@@ -21,8 +21,13 @@ __pycache__/
 *.pyc
 
 # query templates for Window running
-DSGen-software-code-4.0.0/query_templates/
-*.tpl
+# DSGen-software-code-4.0.0/query_templates/
+# *.tpl
 
 generated_queries/
 tpcds-results/
+
+corrected_queries/
+corrected_results/
+
+/benchmarks
