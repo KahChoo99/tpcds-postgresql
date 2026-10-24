@@ -16,7 +16,6 @@ FIELDS = [
     "error"
 ]
 
-
 def extract_time(output, name):
     match = re.search(
         rf"{name}:\s*([\d.]+)\s*ms",

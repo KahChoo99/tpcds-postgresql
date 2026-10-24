@@ -159,6 +159,49 @@ docker exec tpcds-postgres psql -U tpcds -d postgres \
 
 The precise schema creation and bulk-loading commands depend on your established SF 1 loading script, table list, and ordering. **These commands have not been confirmed in this conversation; do not improvise `COPY` for every table until the loading process is reviewed.** In particular, verify the schema uses the same keys and indexes as SF 1, whether rows contain `NULL` fields, and whether the `/benchmarks/sf2/data` files are readable in the PostgreSQL container.
 
+Create the tables in:
+
+docker exec -i tpcds-postgres psql -U tpcds -d tpcds_sf2 \
+  < DSGen-software-code-4.0.0/tools/tpcds.sql
+
+verify :
+docker exec tpcds-postgres psql -U tpcds -d tpcds_sf2 \
+  -c "\dt"
+
+
+Step 5 — Load all SF 10 data files
+WHERE: MacBook — VS Code Terminal
+Because you generated your data with -TERMINATE N, you no longer need to remove the last delimiter from the .dat files.
+First, test loading one table:
+docker exec tpcds-postgres \
+  psql -v ON_ERROR_STOP=1 -U tpcds -d tpcds_sf10 \
+  -c "COPY customer FROM '/benchmarks/sf10/data/customer.dat' WITH (FORMAT csv, DELIMITER '|', NULL '');"
+If successful, PostgreSQL returns something like:
+COPY 100000
+The actual number of rows depends on the generated dataset.
+Now check:
+docker exec tpcds-postgres \
+  psql -U tpcds -d tpcds_sf10 \
+  -c "SELECT COUNT(*) FROM customer;"
+If that works, we can load all the other tables.
+Run the following from your MacBook Terminal, inside your project directory:
+
+for file in benchmarks/sf10/data/*.dat; do
+    table=$(basename "$file" .dat)
+
+    if [ "$table" = "customer" ]; then
+        echo "Skipping customer (already loaded)"
+        continue
+    fi
+
+    echo "Loading $table..."
+
+    docker exec tpcds-postgres \
+      psql -v ON_ERROR_STOP=1 -U tpcds -d tpcds_sf10 \
+      -c "COPY \"$table\" FROM '/benchmarks/sf10/data/$table.dat' WITH (FORMAT csv, DELIMITER '|', NULL '');" \
+      || break
+done
+
 Check the database after loading:
 
 ```bash
@@ -237,14 +280,19 @@ docker exec -it tpcds-tools bash
 
 ```bash
 cd /tpcds/tools
-mkdir -p /benchmarks/sf2/queries
+mkdir -p /benchmarks/sf1/queries_ordered
+
 ./dsqgen \
-  -input ../query_templates/templates.lst \
-  -directory ../query_templates \
-  -dialect postgresql \
-  -scale 2 \
-  -output_dir /benchmarks/sf2/queries
+  -DIRECTORY ../query_templates \
+  -INPUT ../query_templates/templates.lst \
+  -SCALE 1 \
+  -DIALECT netezza \
+  -QUALIFY Y \
+  -VERBOSE Y \
+  -OUTPUT_DIR /benchmarks/sf1/queries_ordered
 ```
+Better option:
+./dsqgen   -DIRECTORY ../query_templates   -INPUT ../query_templates/templates.lst   -SCALE 1   -DIALECT postgresql   -QUALIFY Y   -VERBOSE Y -RNGSEED 123  -OUTPUT_DIR /benchmarks/sf1/queries
 
 Verify:
 
