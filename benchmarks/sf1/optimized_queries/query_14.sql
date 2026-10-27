@@ -1,6 +1,3 @@
--- ============================================================
--- OPTIMIZED QUERY 14 - PART 1
--- ============================================================
 WITH d_3yr AS (
     SELECT d_date_sk
     FROM date_dim
@@ -121,9 +118,6 @@ GROUP BY ROLLUP (channel, i_brand_id, i_class_id, i_category_id)
 ORDER BY channel, i_brand_id, i_class_id, i_category_id
 LIMIT 100;
 
--- ============================================================
--- OPTIMIZED QUERY 14 - PART 2
--- ============================================================
 WITH d_3yr AS (
     SELECT d_date_sk
     FROM date_dim
