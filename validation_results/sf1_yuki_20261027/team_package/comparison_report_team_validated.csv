@@ -1,0 +1,4 @@
+query,candidate_role,candidate_path,sha1,expected_rows,actual_rows,normal_match,strict_match,byte_match
+Q11,team_selected,optimized_queries/query_11_optimized.sql,b81943f2d87e95a67b37a348b780e9db7235fd30,84,84,YES,YES,YES
+Q30,team_selected,optimized_queries/query_30_optimized.sql,8839eff9273f14a8717ef6a4bc8a6e714dc0bca4,100,100,YES,YES,YES
+Q74,team_selected,optimized_queries/query_74_optimized.sql,776dc5b313275d35f6e97663226dc1437426d604,83,83,YES,YES,YES

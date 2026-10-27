@@ -1,0 +1,5 @@
+query,status,data_match,expected_rows,actual_rows,old_time_s,new_time_s,speedup,error
+Q04,SUCCESS,YES (Exact),4,4,868.423,16.654,52.15x FASTER,
+Q11,SUCCESS,YES (Exact),84,84,440.699,0.588,749.49x FASTER,
+Q30,SUCCESS,YES (Exact),100,100,4.545,0.06,75.75x FASTER,
+Q74,SUCCESS,YES (Exact),83,83,264.595,0.457,578.98x FASTER,

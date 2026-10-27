@@ -1,0 +1,2 @@
+query,candidate_role,candidate_path,sha1,expected_rows,actual_rows,normal_match,strict_match,byte_match,team_selected_q4_path,team_selected_q4_sha1
+Q04,yuki_candidate_not_team_selected,optimized_queries/query_4_optimized.sql,fb071ae9c3d01b6acba294d59ece060e237368ca,4,4,YES,YES,YES,benchmarks/sf1/optimized_queries/query_4.sql,0f4fdd805c95b5b63c288422f8214c093f68780f
