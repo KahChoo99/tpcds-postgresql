@@ -1,6 +1,3 @@
--- ============================================================
--- OPTIMIZED QUERY 14 - PART 1
--- ============================================================
 WITH d_3yr AS (
     SELECT d_date_sk
     FROM date_dim
@@ -121,13 +118,10 @@ GROUP BY ROLLUP (channel, i_brand_id, i_class_id, i_category_id)
 ORDER BY channel, i_brand_id, i_class_id, i_category_id
 LIMIT 100;
 
--- ============================================================
--- OPTIMIZED QUERY 14 - PART 2
--- ============================================================
 WITH d_3yr AS (
     SELECT d_date_sk
     FROM date_dim
-    WHERE d_year BETWEEN 1998 AND 1998 + 2
+    WHERE d_year BETWEEN 1998 AND 2000
 ),
 ss_3yr AS MATERIALIZED (
     SELECT ss_item_sk AS item_sk,
@@ -166,15 +160,11 @@ cross_items AS MATERIALIZED (
         FROM ss_3yr s
         JOIN item iss ON s.item_sk = iss.i_item_sk
         INTERSECT
-        SELECT ics.i_brand_id,
-               ics.i_class_id,
-               ics.i_category_id
+        SELECT ics.i_brand_id, ics.i_class_id, ics.i_category_id
         FROM cs_3yr c
         JOIN item ics ON c.item_sk = ics.i_item_sk
         INTERSECT
-        SELECT iws.i_brand_id,
-               iws.i_class_id,
-               iws.i_category_id
+        SELECT iws.i_brand_id, iws.i_class_id, iws.i_category_id
         FROM ws_3yr w
         JOIN item iws ON w.item_sk = iws.i_item_sk
     ) x ON i.i_brand_id = x.brand_id
@@ -191,31 +181,43 @@ avg_sales AS MATERIALIZED (
         SELECT SUM(w_sum), SUM(w_cnt) FROM ws_3yr
     ) a
 ),
-target_weeks AS (
-    SELECT (SELECT d_week_seq FROM date_dim WHERE d_year = 1998 + 1 AND d_moy = 12 AND d_dom = 22) AS ty_week,
-           (SELECT d_week_seq FROM date_dim WHERE d_year = 1998 AND d_moy = 12 AND d_dom = 22) AS ly_week
+target_weeks AS MATERIALIZED (
+    SELECT
+        (SELECT d_week_seq FROM date_dim
+         WHERE d_year = 1999 AND d_moy = 12 AND d_dom = 22) AS ty_week,
+        (SELECT d_week_seq FROM date_dim
+         WHERE d_year = 1998 AND d_moy = 12 AND d_dom = 22) AS ly_week
+),
+target_dates AS MATERIALIZED (
+    SELECT d.d_date_sk, d.d_week_seq
+    FROM date_dim d
+    CROSS JOIN target_weeks tw
+    WHERE d.d_week_seq IN (tw.ty_week, tw.ly_week)
 )
 SELECT 'store' AS ty_channel,
        ci.i_brand_id AS ty_brand,
        ci.i_class_id AS ty_class,
        ci.i_category_id AS ty_category,
-       SUM(ss.ss_quantity * ss.ss_list_price) FILTER (WHERE d.d_week_seq = tw.ty_week) AS ty_sales,
-       COUNT(*) FILTER (WHERE d.d_week_seq = tw.ty_week) AS ty_number_sales,
+       SUM(ss.ss_quantity * ss.ss_list_price)
+           FILTER (WHERE td.d_week_seq = tw.ty_week) AS ty_sales,
+       COUNT(*) FILTER (WHERE td.d_week_seq = tw.ty_week) AS ty_number_sales,
        'store' AS ly_channel,
        ci.i_brand_id AS ly_brand,
        ci.i_class_id AS ly_class,
        ci.i_category_id AS ly_category,
-       SUM(ss.ss_quantity * ss.ss_list_price) FILTER (WHERE d.d_week_seq = tw.ly_week) AS ly_sales,
-       COUNT(*) FILTER (WHERE d.d_week_seq = tw.ly_week) AS ly_number_sales
-FROM store_sales ss
-JOIN date_dim d ON ss.ss_sold_date_sk = d.d_date_sk
+       SUM(ss.ss_quantity * ss.ss_list_price)
+           FILTER (WHERE td.d_week_seq = tw.ly_week) AS ly_sales,
+       COUNT(*) FILTER (WHERE td.d_week_seq = tw.ly_week) AS ly_number_sales
+FROM target_dates td
+JOIN store_sales ss ON ss.ss_sold_date_sk = td.d_date_sk
 CROSS JOIN target_weeks tw
 JOIN cross_items ci ON ss.ss_item_sk = ci.item_sk
-WHERE d.d_week_seq IN (tw.ty_week, tw.ly_week)
-GROUP BY ci.i_brand_id,
-         ci.i_class_id,
-         ci.i_category_id
-HAVING SUM(ss.ss_quantity * ss.ss_list_price) FILTER (WHERE d.d_week_seq = tw.ty_week) > (SELECT average_sales FROM avg_sales)
-   AND SUM(ss.ss_quantity * ss.ss_list_price) FILTER (WHERE d.d_week_seq = tw.ly_week) > (SELECT average_sales FROM avg_sales)
+GROUP BY ci.i_brand_id, ci.i_class_id, ci.i_category_id
+HAVING SUM(ss.ss_quantity * ss.ss_list_price)
+           FILTER (WHERE td.d_week_seq = tw.ty_week)
+           > (SELECT average_sales FROM avg_sales)
+   AND SUM(ss.ss_quantity * ss.ss_list_price)
+           FILTER (WHERE td.d_week_seq = tw.ly_week)
+           > (SELECT average_sales FROM avg_sales)
 ORDER BY 1, 2, 3, 4
 LIMIT 100;

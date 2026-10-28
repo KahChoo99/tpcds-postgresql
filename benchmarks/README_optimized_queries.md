@@ -2,20 +2,20 @@
 
 ## Purpose and scope
 
-This document explains how the SQL rewrites in SF1 were adapted to SF2, SF5, and SF10. It covers the original query structure, the implemented changes, the parameters that differ between scale factors, and the validation completed so far.
+This document explains the SQL rewrites for SF1 and their adaptations to SF2, SF5, and SF10. It covers the original query structure, the implemented changes, the parameters that differ between scale factors, and the validation completed so far.
 
-The selected query IDs are **1, 4, 6, 11, 14, 16, 30, 74, 81, and 95**. Each new `optimized_queries` directory contains exactly these ten SQL files. No original or unrelated queries were copied into those directories.
+The selected query IDs are **1, 4, 6, 11, 14, 16, 17, 25, 29, 30, 74, 75, 81, and 95**. The first batch covered ten queries; the second added **Q17, Q25, Q29, and Q75**. Each SF2/SF5/SF10 `optimized_queries` directory now contains exactly these fourteen SQL files. No original or unrelated queries were copied into those directories.
 
 | Scale factor | Original SQL | Optimized SQL | Role |
 |---|---|---|---|
-| SF1 | [sf1/queries](sf1/queries/) | [sf1/optimized_queries](sf1/optimized_queries/) | Existing rewrite reference; this directory also contains other SQL files. |
-| SF2 | [sf2/queries](sf2/queries/) | [sf2/optimized_queries](sf2/optimized_queries/) | Ten adapted queries. |
-| SF5 | [sf5/queries](sf5/queries/) | [sf5/optimized_queries](sf5/optimized_queries/) | Ten adapted queries. |
-| SF10 | [sf10/queries](sf10/queries/) | [sf10/optimized_queries](sf10/optimized_queries/) | Ten adapted queries. |
+| SF1 | [sf1/queries](sf1/queries/) | [sf1/optimized_queries](sf1/optimized_queries/) and [sf1/queries_optimized](sf1/queries_optimized/) | The first directory is the historical reference. The four second-batch rewrites and the latest Q14 are in `queries_optimized`. |
+| SF2 | [sf2/queries](sf2/queries/) | [sf2/optimized_queries](sf2/optimized_queries/) | Fourteen adapted queries. |
+| SF5 | [sf5/queries](sf5/queries/) | [sf5/optimized_queries](sf5/optimized_queries/) | Fourteen adapted queries. |
+| SF10 | [sf10/queries](sf10/queries/) | [sf10/optimized_queries](sf10/optimized_queries/) | Fourteen adapted queries. |
 
-There are **30 adapted files and 33 SQL statements** across SF2, SF5, and SF10. Query 14 contains two statements in every scale factor; each of the other selected files contains one.
+There are **42 adapted files and 45 SQL statements** across SF2, SF5, and SF10. Query 14 contains two statements in every scale factor; each of the other selected files contains one. The second batch adds four SF1 implementations and twelve higher-SF files.
 
-Each adaptation uses its own scale factor's original query as the semantic reference. A scale factor can change the generated SQL as well as the data volume: Q11 changes an output column, Q74 changes its aggregate function and ordering, and Q16 changes its set of counties. Copying SF1 SQL without checking those differences would change the requested results.
+Each adaptation uses its own scale factor's original query as the semantic reference. A scale factor can change the generated SQL as well as the data volume: Q11 changes an output column; Q25, Q29, and Q74 change aggregate functions; Q74 also changes ordering; and Q16 changes its set of counties. Copying SF1 SQL without checking those differences would change the requested results.
 
 The original query files and the existing SF1 optimized files were left unchanged. Q30 in the new scale factors includes a correction to the SF1 rewrite's early NULL-customer filter, described below.
 
@@ -27,14 +27,18 @@ The original query files and the existing SF1 optimized files were left unchange
 | Q4 | Three channels combined into annual totals and referenced through six aliases. | Calculate both years in one aggregate per channel, then join three channel summaries. |
 | Q6 | Correlated average item price for each item's category. | Calculate category averages once as a grouped relation and join by category. |
 | Q11 | Store/web annual totals combined and referenced through four aliases. | Calculate two annual sums with `FILTER` per channel and join customer details afterward. |
-| Q14 | Repeated three-year sales processing; separate weekly aggregates in Part 2. | Reuse materialized item summaries within each statement, calculate a weighted global average, and combine weekly aggregates with `FILTER`. |
+| Q14 | Repeated three-year sales processing; separate weekly aggregates in Part 2. | Reuse materialized item summaries, calculate a weighted global average, materialize the two target weeks' date keys, and combine weekly aggregates with `FILTER`. |
 | Q16 | Implicit joins, repeated county literals, and existence subqueries. | Use explicit joins and typed dates, deduplicate county values, and retain `EXISTS` / `NOT EXISTS`. |
+| Q17 | Quantity statistics over a three-fact join. | Materialize narrow store/return matches, filter catalog input by candidate keys, and retain native statistics over the original joined multiset. |
+| Q25 | Profit/loss aggregates over a three-fact join. | Aggregate catalog profit by candidate customer/item pair, using multiplicity-aware formulas when the SF requests AVG or SUM. |
+| Q29 | Quantity aggregates over store sales, returns, and three years of catalog sales. | Reuse narrow store/return matches and filter catalog input without removing aggregate-input duplicates. |
 | Q30 | Correlated average of customer return totals by return-address state. | Calculate the state average with a window function while preserving the NULL-customer group. |
 | Q74 | Store/web annual aggregates referenced through four aliases. | Calculate both annual aggregates with `FILTER`, preserving each SF's aggregate function, then join customer details afterward. |
+| Q75 | Distinct net-sale details from three channels, followed by an annual self-join. | Filter years and category early, preserve the seven-column `UNION`, and compare annual sums with `FILTER`. |
 | Q81 | Correlated state-average lookup over customer catalog-return totals. | Calculate the state average directly over the grouped totals with a window function. |
 | Q95 | Warehouse-pair self-join over web sales and repeated order-membership checks. | Filter candidate sales first and identify multi-warehouse orders with `COUNT(DISTINCT ...)`. |
 
-These changes aim to reduce repeated aggregation, repeated correlated lookups, or the amount of intermediate data. They do not establish a measured speedup. PostgreSQL chooses the physical execution plan; explicit `JOIN` syntax and `SELECT 1` inside `EXISTS` are primarily clarity changes.
+These changes aim to reduce repeated aggregation, repeated correlated lookups, or the amount of intermediate data. They do not by themselves establish a measured speedup. PostgreSQL chooses the physical execution plan; explicit `JOIN` syntax and `SELECT 1` inside `EXISTS` are primarily clarity changes. The SF1 measurements for the second batch are reported below, including Q75's slower observed execution.
 
 ## Query 1: Customer returns above the store average
 
@@ -138,6 +142,8 @@ The intended benefit is to avoid four references to a combined annual relation a
 
 Each `query_14.sql` retains **two separate SQL statements**. Both build their own CTEs. Materialization reuses data within a statement; it does not share data between the two statements.
 
+The SF2, SF5, and SF10 versions follow the latest [SF1 rewrite](sf1/queries_optimized/query_14.sql), including its Part 2 date filtering. The older [SF1 version](sf1/optimized_queries/query_14.sql) remains a historical reference. Each adaptation retains the dates from its own original query, as listed below.
+
 ### Shared three-year preparation
 
 Both statements use the same rewrite pattern:
@@ -174,6 +180,14 @@ The output's `number_sales` remains `COUNT(*)`. Unlike the count used for the av
 
 The original query separately aggregates store sales for two weeks and joins the grouped results. The rewrite uses one grouped store-sales query, with separate `FILTER` expressions for this-year and last-year sums and counts.
 
+The latest SF1 change is also applied to SF2, SF5, and SF10:
+
+1. `target_weeks AS MATERIALIZED` resolves the two anchor dates to `ty_week` and `ly_week` once within the statement.
+2. `target_dates AS MATERIALIZED` selects only `d_date_sk` and `d_week_seq` for those two complete weeks before the store-sales join.
+3. The weekly aggregate joins `store_sales` to `target_dates` by the sold-date key and uses `td.d_week_seq` in its `FILTER` expressions.
+
+This moves the week restriction into a small, explicitly materialized date input. The three-year summaries and global average still use the full three-year interval; the two-week restriction applies only to the final weekly sales calculation. Materialization does not force a particular join algorithm or guarantee a speedup.
+
 Both weekly sums must still exceed `average_sales`. The two `HAVING` conditions preserve the eligibility imposed by the original grouped queries and their inner join.
 
 The anchor dates below identify `d_week_seq` values. The query includes the **entire corresponding week**, which may cross a month or year boundary. Restricting sales to the anchor date or to the anchor's calendar year would change the result.
@@ -185,7 +199,7 @@ The anchor dates below identify `d_week_seq` values. The query includes the **en
 | SF5 | 1998-2000 | November 2000 | 1999-12-24 | 1998-12-24 |
 | SF10 | 2000-2002 | November 2002 | 2001-12-05 | 2000-12-05 |
 
-The intended benefit is to reuse compact three-year summaries instead of repeating work over raw sales rows, and to combine the two weekly aggregations in Part 2.
+The intended benefit is to reuse compact three-year summaries instead of repeating work over raw sales rows, combine the two weekly aggregations in Part 2, and expose the selected date keys before joining weekly sales. Part 1's monthly calculation, both result sets' output columns, ordering, and `LIMIT 100` remain unchanged.
 
 ## Query 16: Catalog orders shipped from different warehouses
 
@@ -210,6 +224,113 @@ The `EXISTS` and `NOT EXISTS` predicates remain. They test membership without mu
 The date interval is inclusive: **start date through start date + 60 days**. SF10 retains all three distinct counties using `IN (...)`; reducing it to Williamson County would be incorrect.
 
 The distinct order count, shipping-cost sum, net-profit sum, ordering, and `LIMIT 100` are unchanged. This rewrite mainly improves clarity and removes redundant literals; it should not be presented as a guaranteed execution-time improvement.
+
+## Query 17: Quantity statistics across store sales, returns, and catalog sales
+
+**Original behavior.** Match store sales to store returns on customer, item, and ticket number, then match catalog sales on customer and item. Group by item ID, item description, and store state. Calculate counts, averages, sample standard deviations, and coefficients of variation for all three quantity columns.
+
+**Changes.**
+
+- Materialize `store_return_rows` after applying the store-sale and return quarter filters. Keep only the join keys, store key, and quantity columns needed later.
+- Build `matching_pairs` as distinct customer/item keys from those matches.
+- Use that key set to restrict catalog rows before the final join.
+- Join the complete store/return rows back to the matching catalog rows, then fetch item/store attributes for grouping.
+- Retain the original native `COUNT(column)`, `AVG`, `STDDEV_SAMP`, and `STDDEV_SAMP / AVG` expressions.
+
+Only the catalog eligibility key set is deduplicated. No store/return or catalog fact rows are deduplicated. If two store/return matches have four matching catalog rows, the aggregate input still contains eight joined rows. Replacing those rows with unweighted per-pair statistics would change counts and sample deviations.
+
+`COUNT(column)` continues to ignore NULL quantities. All-NULL groups retain NULL averages and deviations. No manual variance formula, zero substitution, or new division guard is introduced.
+
+| SF | Store-sale quarter | Return quarters | Catalog-sale quarters |
+|---|---|---|---|
+| SF1 | 2000Q1 | 2000Q1, 2000Q2, 2000Q3 | 2000Q1, 2000Q2, 2000Q3 |
+| SF2 | 2000Q1 | 2000Q1, 2000Q2, 2000Q3 | 2000Q1, 2000Q2, 2000Q3 |
+| SF5 | 2000Q1 | 2000Q1, 2000Q2, 2000Q3 | 2000Q1, 2000Q2, 2000Q3 |
+| SF10 | 1998Q1 | 1998Q1, 1998Q2, 1998Q3 | 1998Q1, 1998Q2, 1998Q3 |
+
+The output aliases, grouping, sort order, and `LIMIT 100` are unchanged. The intended benefit is to make the selective store/return match explicit and restrict the catalog join to relevant customer/item pairs while preserving the original statistics.
+
+## Query 25: Profit and loss aggregates with catalog join multiplicity
+
+**Original behavior.** Match April store sales with returns from April through October of the same year. Join catalog sales for the same customer/item in April through October. Group by item and store attributes and aggregate store profit, return loss, and catalog profit.
+
+**Changes.**
+
+- Materialize the filtered store/return matches, preserving customer/item/ticket equality.
+- Use `EXISTS` to restrict catalog input to customer/item pairs present in those matches.
+- Summarize catalog profit by customer/item before the final item/store grouping.
+- Preserve the aggregate requested by each SF rather than using the SF1 aggregate everywhere.
+
+| SF | Year for all three date filters | Aggregate for all three output measures |
+|---|---|---|
+| SF1 | 2000 | `MIN` |
+| SF2 | 1999 | `AVG` |
+| SF5 | 1998 | `MAX` |
+| SF10 | 2002 | `SUM` |
+
+All versions use April store sales and April-October returns/catalog sales. Their output aliases, grouping, sorting, and `LIMIT 100` match their originals.
+
+### MIN and MAX variants
+
+SF1 and SF5 can reduce catalog rows to their per-pair minimum or maximum. Repeating a value through a join does not change its minimum or maximum. A catalog group whose profits are all NULL is still retained, so it continues to establish that a catalog match exists.
+
+### AVG and SUM variants
+
+SF2 and SF10 must preserve how often catalog matches repeat the store and return values. Simply joining one catalog average/sum per pair and applying unweighted outer aggregates would be incorrect.
+
+For each customer/item pair, the catalog summary retains:
+
+| Symbol | SQL measure | Purpose |
+|---|---|---|
+| `n` | `COUNT(*)` | Number of matching catalog rows, including rows with NULL profit. |
+| `s` | `SUM(cs_net_profit)` | Sum of non-NULL catalog profits. |
+| `k` | `COUNT(cs_net_profit)` | Number of non-NULL catalog profits; needed by AVG. |
+
+Over the original store/return matches `m`, the equivalent aggregates are:
+
+```text
+AVG(store_profit) = SUM(m.store_profit * n)
+                   / SUM(n) FILTER (WHERE m.store_profit IS NOT NULL)
+
+AVG(return_loss)  = SUM(m.return_loss * n)
+                   / SUM(n) FILTER (WHERE m.return_loss IS NOT NULL)
+
+AVG(catalog_profit) = SUM(s) / SUM(k)
+
+SUM(store_profit)   = SUM(m.store_profit * n)
+SUM(return_loss)    = SUM(m.return_loss * n)
+SUM(catalog_profit) = SUM(s)
+```
+
+Each catalog summary is joined once for every original store/return match, so `SUM(s)` and `SUM(k)` also retain that side of the join multiplicity. The AVG implementation uses `NULLIF(denominator, 0)` to return NULL for an all-NULL measure, matching native `AVG`.
+
+Catalog rows with NULL profit still contribute to `n`: they repeat a non-NULL store profit or return loss in the original join even though they do not contribute to the catalog-profit average.
+
+The intended benefit is to avoid expanding every catalog match when the requested aggregate can instead be represented by compact per-pair values and counts. SF2/SF5/SF10 received static review only; these variants were not executed.
+
+## Query 29: Quantity aggregates over a three-year catalog window
+
+**Original behavior.** Match April store sales to returns from April through July of the same year, then join catalog sales from that year and the next two years. Group by item and store attributes.
+
+**Changes.**
+
+- Materialize narrow, date-filtered store/return matches.
+- Deduplicate only the candidate customer/item key set.
+- Restrict catalog input through those keys and the original three-year filter.
+- Restore the full fact-row join before applying the SF-specific native aggregates.
+
+| SF | Base year | Aggregate of each quantity column | Catalog years |
+|---|---|---|---|
+| SF1 | 1998 | `STDDEV_SAMP` | 1998, 1999, 2000 |
+| SF2 | 2000 | `MIN` | 2000, 2001, 2002 |
+| SF5 | 2000 | `STDDEV_SAMP` | 2000, 2001, 2002 |
+| SF10 | 2000 | `MIN` | 2000, 2001, 2002 |
+
+The catalog window includes complete years, not only April-July. The store-sale and return windows remain April and April-July respectively.
+
+Keeping raw aggregate-input rows is particularly important for `STDDEV_SAMP`, whose sample denominator depends on the count of non-NULL values after the join. The rewrite does not replace it with a population deviation or a deviation of preaggregated means.
+
+Output aliases, item/store grouping, ordering, and `LIMIT 100` are preserved.
 
 ## Query 30: Web returns above the return-state average
 
@@ -275,6 +396,38 @@ The comparison remains the web second-year/first-year ratio against the store ra
 
 The customer-identity assumption described for Q11 also applies here. `LIMIT 100` and the three output columns remain unchanged.
 
+## Query 75: Compare annual net sales after returns
+
+**Original behavior.** Calculate net quantity and net sales amount after returns for catalog, store, and web sales in one item category. Combine the detail rows with `UNION`, aggregate by year and four item classification IDs, then join current-year and previous-year totals. Keep groups whose current/previous quantity ratio is below `0.9`.
+
+**Changes.**
+
+- Restrict date input to the two compared years before processing the sales branches.
+- Restrict item input to the selected category and non-NULL brand/class/category/manufacturer IDs.
+- Preserve the original return join keys, `LEFT JOIN` relationships, and `COALESCE` expressions.
+- Preserve `UNION` duplicate elimination on the exact seven-column detail tuple.
+- Use `SUM(...) FILTER (WHERE d_year = ...)` to obtain both annual totals in one grouping.
+- Require at least one detail row in both years with `HAVING COUNT(*) FILTER (...) > 0`.
+
+The seven deduplication columns are **year, brand ID, class ID, category ID, manufacturer ID, net quantity, and net amount**. Identical tuples are removed within and across channels. Replacing `UNION` with `UNION ALL`, adding order/item identifiers to the tuple, or aggregating each channel before deduplication would change the result.
+
+Early year filtering is safe because year is part of that tuple. Early removal of NULL classification IDs is safe because the original annual self-join uses equality on all four IDs; groups with any NULL ID cannot match.
+
+The small date/item CTEs use `NOT MATERIALIZED` so PostgreSQL can inline them. Narrow sales and returns subqueries use `OFFSET 0` as planner boundaries: no row is skipped, but parameterized index-lookup paths through those subqueries are prevented. This addresses the many fact/return index lookups seen during SF1 plan investigation while keeping every input row.
+
+| SF | Category | Previous year | Current year |
+|---|---|---|---|
+| SF1 | `Sports` | 2000 | 2001 |
+| SF2 | `Home` | 2001 | 2002 |
+| SF5 | `Shoes` | 1998 | 1999 |
+| SF10 | `Music` | 2001 | 2002 |
+
+The quantity ratio retains both `DECIMAL(17,2)` casts and the strict `< 0.9` condition. No zero-denominator guard is added. Missing or all-NULL measures retain the original behavior.
+
+The output remains previous/current year, four classification IDs, annual quantities, quantity difference, and amount difference. Ordering stays `sales_cnt_diff, sales_amt_diff` with `LIMIT 100`. No new tie-breaker is introduced.
+
+The rewrite reduces the years entering deduplication and removes the annual self-join. Execution-time improvement remains dependent on the physical plan and cache/I/O conditions; result equivalence is assessed separately.
+
 ## Query 81: Catalog returns above the return-state average
 
 **Original behavior.** Calculate customer/state catalog-return totals, then use a correlated lookup to obtain the average customer total in the same return state.
@@ -330,11 +483,13 @@ The intended benefit is to avoid constructing warehouse-pair rows and restrict w
 
 ## Validation completed
 
-The adaptation was checked at three levels:
+### First batch: Q1, Q4, Q6, Q11, Q14, Q16, Q30, Q74, Q81, and Q95
+
+The initial adaptation was checked at three levels:
 
 | Check | Scope | What it establishes |
 |---|---|---|
-| File and parameter review | All 30 adapted files | Exactly ten selected files per new SF; correct SF-specific parameters, aggregate functions, output columns, ordering, and statement counts. |
+| File and parameter review | The initial 30 adapted files | The ten first-batch files per new SF had correct SF-specific parameters, aggregate functions, output columns, ordering, and statement counts. |
 | PostgreSQL 16 `EXPLAIN` | 66 statements: 33 original and 33 optimized | All selected original and adapted statements parse, resolve against the TPC-DS schema, and produce plans. |
 | Q30 result comparison on a synthetic fixture | SF2, SF5, and SF10 | The corrected query matches the original with NULL customer keys, NULL return amounts, and NULL return states. |
 
@@ -342,18 +497,112 @@ The `EXPLAIN` check used a temporary PostgreSQL 16 instance with the TPC-DS sche
 
 The Q30 fixture returned two rows from both the original and corrected query in every tested SF. Reintroducing the early NULL-customer filter returned one row, demonstrating the difference described above.
 
-Full result equivalence on the actual SF2/SF5/SF10 datasets and measured performance comparisons remain to be run. This document therefore reports implementation changes and completed checks, without claiming full-data equivalence or a numerical speedup.
+Full result equivalence on the actual SF2/SF5/SF10 datasets and measured performance comparisons for that batch remain to be run.
+
+### Q14 refresh from the latest SF1 rewrite
+
+The revised SF2/SF5/SF10 Q14 files retain two statements and the original per-SF year/month/day parameters. Static review covers the materialized `target_weeks`/`target_dates` structure, complete-week filtering, the unchanged three-year average, and the output clauses. The first-batch `EXPLAIN` results above describe the earlier Q14 versions; they do not validate this refresh. Full-data result equivalence and performance of the refreshed versions remain to be measured.
+
+### Second batch: Q17, Q25, Q29, and Q75
+
+The four original queries were executed against the existing SF1 dataset in database `tpcds` using PostgreSQL 16.15 and `work_mem=256MB`. A fresh, one-run baseline was saved under [validation_q17_q25_q29_q75/original](sf1/validation_q17_q25_q29_q75/original/).
+
+The generated result rows were copied to [sf1/ans_from_original](sf1/ans_from_original/) as `17.ans`, `25.ans`, `29.ans`, and `75.ans`. Other answer files were retained. The rewritten SQL was then executed from `sf1/queries_optimized` with the same database and memory setting through `3_compare_result.py -sd ... -ed ... -bc ...`.
+
+Both the normal comparison and a separate `--strict` comparison of the saved final outputs passed:
+
+| Query | Original rows | Rewritten rows | Normal comparison | Strict comparison |
+|---|---:|---:|---|---|
+| Q17 | 1 | 1 | Match | Match |
+| Q25 | 0 | 0 | Match | Match |
+| Q29 | 1 | 1 | Match | Match |
+| Q75 | 100 | 100 | Match | Match |
+
+Reports and execution evidence:
+
+- [Final combined comparison](sf1/validation_q17_q25_q29_q75/comparison_report.csv)
+- [Strict comparison](sf1/validation_q17_q25_q29_q75/comparison_report_strict.csv)
+- [Fresh original timing CSV](sf1/validation_q17_q25_q29_q75/original/exec_time_details.csv)
+- [Final rewritten timing CSV](sf1/validation_q17_q25_q29_q75/optimized_exec_time_details.csv)
+- [Saved rewritten outputs](sf1/queries_optimized/executed_outputs/)
+
+Q25's real-data comparison is empty on both sides, so it alone cannot demonstrate the behavior of nonempty groups. Q17 and Q29 also return only one group on this dataset. Additional [SF1 fixture checks](sf1/validation_q17_q25_q29_q75/sf1_fixture_checks.sql) were therefore executed for all three queries.
+
+The fixture uses temporary tables inside a transaction that is rolled back. It compares typed results with `EXCEPT ALL` in both directions and asserts expected values for two output groups. Coverage includes eight joined rows from two store/return matches and four catalog rows, repeated projected catalog values, NULL quantities/profits, an all-NULL group, missing catalog matches, mismatched tickets/customers, NULL customer keys, and excluded dates. All checks passed; see the [fixture log](sf1/validation_q17_q25_q29_q75/sf1_fixture_checks.log). Public data was not modified.
+
+### Observed SF1 times for the second batch
+
+| Query | Original execution, seconds | Final rewritten execution, seconds | Ratio reported by comparison |
+|---|---:|---:|---|
+| Q17 | 20.687 | 14.478 | 1.43x faster |
+| Q25 | 3.314 | 0.981 | 3.38x faster |
+| Q29 | 1.719 | 0.728 | 2.36x faster |
+| Q75 | 3.719 | 4.436 | 1.19x slower |
+
+These are individual validation executions, not a repeated benchmark under controlled cache conditions. Q75 was investigated and revised using SF1 execution plans; its final output remained identical, but its final measured execution was still slower than the recorded baseline. The implementation is retained as a semantics-preserving rewrite, without claiming a Q75 speedup.
+
+The final combined report uses the first successful live comparison for unchanged Q17/Q25/Q29 and the final live comparison for revised Q75. The rewritten timing CSV records those per-query observations. The final normal and strict reports were generated from those saved outputs without re-executing unchanged queries.
+
+**SF2, SF5, and SF10 were not executed for this second batch, including no `EXPLAIN` runs.** Their twelve new files received static review of the original-query differences, date/category parameters, aggregate variants, join keys, duplicate/NULL semantics, and output clauses. Runtime equivalence and performance for these files remain unmeasured.
+
+### Reproducing the four-query SF1 comparison
+
+The following PowerShell example generates fresh original results, writes the four expected answer files, and uses the requested live-comparison workflow. Run it from the repository root against the database containing SF1. The timestamped run directory preserves earlier measurement reports.
+
+```powershell
+$databaseName = 'tpcds'
+$selectedQueries = '17,25,29,75'
+$runTag = Get-Date -Format 'yyyyMMdd-HHmmss'
+$validationRun = "benchmarks/sf1/validation-four-queries-$runTag"
+
+python 2_run_tpcds_benchmark.py `
+  -i benchmarks/sf1/queries `
+  -o "$validationRun/original" `
+  -d $databaseName `
+  -q $selectedQueries `
+  -n 1 `
+  --set work_mem=256MB
+
+New-Item -ItemType Directory -Force `
+  -Path benchmarks/sf1/ans_from_original | Out-Null
+
+foreach ($queryNumber in @(17, 25, 29, 75)) {
+    $sourceAnswer = "$validationRun/original/results/Q{0:D2}.txt" -f $queryNumber
+    $targetAnswer = "benchmarks/sf1/ans_from_original/{0}.ans" -f $queryNumber
+    Copy-Item -LiteralPath $sourceAnswer -Destination $targetAnswer
+}
+
+$baseCsv = "$validationRun/original/exec_time_details.csv"
+
+python 3_compare_result.py `
+  -sd benchmarks/sf1/queries_optimized `
+  -ed benchmarks/sf1/ans_from_original `
+  -bc "$baseCsv" `
+  -d $databaseName `
+  -q $selectedQueries `
+  --set work_mem=256MB `
+  --report "$validationRun/comparison_report.csv" `
+  --diff-dir "$validationRun/diffs"
+
+python 3_compare_result.py `
+  --actual-dir benchmarks/sf1/queries_optimized/executed_outputs `
+  -ed benchmarks/sf1/ans_from_original `
+  -q $selectedQueries `
+  --strict `
+  --report "$validationRun/comparison_report_strict.csv" `
+  --diff-dir "$validationRun/strict_diffs"
+```
 
 ## Running result and performance comparisons
 
 Run the following PowerShell commands from the repository root. Set the database name to the database that actually contains the chosen SF's data. Change `$sf` and the database name together for SF5 or SF10.
 
-The example runs only the ten selected queries. It uses fresh, timestamped output directories and saves result rows for comparison.
+The example below is for future validation of all fourteen selected queries in a higher SF. It uses fresh, timestamped output directories and saves result rows for comparison. It does not indicate that the four new queries have already been executed in SF2/SF5/SF10.
 
 ```powershell
 $sf = 2
 $databaseName = 'REPLACE_WITH_DATABASE_CONTAINING_SF2'
-$selectedQueries = '1,4,6,11,14,16,30,74,81,95'
+$selectedQueries = '1,4,6,11,14,16,17,25,29,30,74,75,81,95'
 $runTag = Get-Date -Format 'yyyyMMdd-HHmmss'
 $originalRun = "benchmarks/sf$sf/verification-original-$runTag"
 $optimizedRun = "benchmarks/sf$sf/verification-optimized-$runTag"
@@ -396,7 +645,7 @@ The default comparison normalizes formatting and decimal representations. Decima
 
 `--strict` disables numeric/format normalization but still ignores blank lines and newline differences. It is a strict comparison of nonblank lines, not a byte-for-byte comparison. Row-order differences are reported as mismatches.
 
-Inspect the report for all ten queries. Missing reference files may be marked as skipped, and batch mode does not necessarily exit with a nonzero status for mismatches. A successful command exit alone does not establish equivalence.
+Inspect the report for every selected query. Missing reference files may be marked as skipped, and batch mode does not necessarily exit with a nonzero status for mismatches. A successful command exit alone does not establish equivalence.
 
 For stronger value and duplicate-row checks, compare typed results inside PostgreSQL with `EXCEPT ALL` in both directions. Check ordering separately where it is part of the expected output, and keep both Q14 result sets separate.
 
@@ -404,4 +653,4 @@ For stronger value and duplicate-row checks, compare typed results inside Postgr
 
 The current root `.gitignore` contains `optimized_queries/`, which also ignores the per-SF optimized directories. The SQL files exist locally, but ordinary `git status` will not list them as new files.
 
-This README is stored outside those ignored directories so it can be tracked independently. The ignore configuration has not been changed.
+The SF1 `queries_optimized` directory uses a different name and is not covered by that rule. This README is stored outside the ignored directories so it can be tracked independently. The ignore configuration has not been changed.
