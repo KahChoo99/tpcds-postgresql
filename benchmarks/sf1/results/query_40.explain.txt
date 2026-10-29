@@ -1,0 +1,58 @@
+Limit  (cost=48258.74..48268.10 rows=67 width=93) (actual time=50.907..52.342 rows=100 loops=1)
+  Buffers: shared hit=89680 read=36564
+  ->  Finalize GroupAggregate  (cost=48258.74..48268.10 rows=67 width=93) (actual time=50.906..52.337 rows=100 loops=1)
+        Group Key: warehouse.w_state, item.i_item_id
+        Buffers: shared hit=89680 read=36564
+        ->  Gather Merge  (cost=48258.74..48266.26 rows=56 width=93) (actual time=50.900..52.264 rows=201 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=89680 read=36564
+              ->  Partial GroupAggregate  (cost=47258.72..47259.77 rows=28 width=93) (actual time=49.835..49.949 rows=251 loops=3)
+                    Group Key: warehouse.w_state, item.i_item_id
+                    Buffers: shared hit=89680 read=36564
+                    ->  Sort  (cost=47258.72..47258.79 rows=28 width=45) (actual time=49.828..49.839 rows=388 loops=3)
+                          Sort Key: warehouse.w_state, item.i_item_id
+                          Sort Method: quicksort  Memory: 58kB
+                          Buffers: shared hit=89680 read=36564
+                          Worker 0:  Sort Method: quicksort  Memory: 53kB
+                          Worker 1:  Sort Method: quicksort  Memory: 54kB
+                          ->  Nested Loop  (cost=2069.82..47258.05 rows=28 width=45) (actual time=33.246..49.368 rows=551 loops=3)
+                                Buffers: shared hit=89666 read=36564
+                                ->  Nested Loop Left Join  (cost=2069.67..47256.42 rows=28 width=37) (actual time=33.221..49.262 rows=553 loops=3)
+                                      Buffers: shared hit=89635 read=36563
+                                      ->  Nested Loop  (cost=2069.25..47243.83 rows=28 width=39) (actual time=33.206..48.429 rows=553 loops=3)
+                                            Buffers: shared hit=84889 read=36164
+                                            ->  Parallel Hash Join  (cost=2068.96..47100.15 rows=458 width=22) (actual time=32.509..41.200 rows=9130 loops=3)
+                                                  Hash Cond: (catalog_sales.cs_sold_date_sk = date_dim.d_date_sk)
+                                                  Buffers: shared hit=2714 read=36164
+                                                  ->  Parallel Seq Scan on catalog_sales  (cost=0.00..43454.42 rows=600642 width=22) (actual time=0.009..23.221 rows=480516 loops=3)
+                                                        Buffers: shared hit=1284 read=36164
+                                                  ->  Parallel Hash  (cost=2068.55..2068.55 rows=33 width=8) (actual time=1.359..1.359 rows=20 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 104kB
+                                                        Buffers: shared hit=1424
+                                                        ->  Parallel Seq Scan on date_dim  (cost=0.00..2068.55 rows=33 width=8) (actual time=0.576..1.326 rows=20 loops=3)
+                                                              Filter: ((d_date >= '2002-01-26'::date) AND (d_date <= '2002-03-27'::date))
+                                                              Rows Removed by Filter: 24329
+                                                              Buffers: shared hit=1424
+                                            ->  Index Scan using item_pkey on item  (cost=0.29..0.31 rows=1 width=21) (actual time=0.001..0.001 rows=0 loops=27391)
+                                                  Index Cond: (i_item_sk = catalog_sales.cs_item_sk)
+                                                  Filter: ((i_current_price >= 0.99) AND (i_current_price <= 1.49))
+                                                  Rows Removed by Filter: 1
+                                                  Buffers: shared hit=82175
+                                      ->  Index Scan using catalog_returns_pkey on catalog_returns  (cost=0.42..0.45 rows=1 width=14) (actual time=0.001..0.001 rows=0 loops=1659)
+                                            Index Cond: ((cr_item_sk = catalog_sales.cs_item_sk) AND (cr_order_number = catalog_sales.cs_order_number))
+                                            Buffers: shared hit=4746 read=399
+                                ->  Memoize  (cost=0.15..0.17 rows=1 width=16) (actual time=0.000..0.000 rows=1 loops=1659)
+                                      Cache Key: catalog_sales.cs_warehouse_sk
+                                      Cache Mode: logical
+                                      Hits: 597  Misses: 6  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                      Buffers: shared hit=31 read=1
+                                      Worker 0:  Hits: 517  Misses: 5  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                      Worker 1:  Hits: 528  Misses: 6  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                      ->  Index Scan using warehouse_pkey on warehouse  (cost=0.14..0.16 rows=1 width=16) (actual time=0.002..0.002 rows=1 loops=17)
+                                            Index Cond: (w_warehouse_sk = catalog_sales.cs_warehouse_sk)
+                                            Buffers: shared hit=31 read=1
+Planning:
+  Buffers: shared hit=351 read=11
+Planning Time: 1.114 ms
+Execution Time: 52.412 ms

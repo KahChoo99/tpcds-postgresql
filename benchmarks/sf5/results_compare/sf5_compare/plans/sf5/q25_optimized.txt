@@ -1,0 +1,47 @@
+-- statement 1
+Limit  (cost=34155.74..34155.77 rows=1 width=236)
+  CTE matched_store_returns
+    ->  Nested Loop  (cost=3178.26..33971.24 rows=1 width=24)
+          ->  Gather  (cost=3177.97..33970.92 rows=1 width=28)
+                Workers Planned: 3
+                ->  Nested Loop  (cost=2177.97..32970.82 rows=1 width=28)
+                      ->  Parallel Hash Join  (cost=2177.54..32049.61 rows=1300 width=18)
+                            Hash Cond: (sr.sr_returned_date_sk = return_date.d_date_sk)
+                            ->  Parallel Seq Scan on store_returns sr  (cost=0.00..28654.42 rows=463842 width=22)
+                            ->  Parallel Hash  (cost=2175.97..2175.97 rows=125 width=4)
+                                  ->  Parallel Seq Scan on date_dim return_date  (cost=0.00..2175.97 rows=125 width=4)
+                                        Filter: ((d_moy >= 4) AND (d_moy <= 10) AND (d_year = 1998))
+                      ->  Index Scan using store_sales_pkey on store_sales ss  (cost=0.43..0.70 rows=1 width=26)
+                            Index Cond: ((ss_item_sk = sr.sr_item_sk) AND (ss_ticket_number = sr.sr_ticket_number))
+                            Filter: (sr.sr_customer_sk = ss_customer_sk)
+          ->  Index Scan using date_dim_pkey on date_dim sold_date_1  (cost=0.29..0.32 rows=1 width=4)
+                Index Cond: (d_date_sk = ss.ss_sold_date_sk)
+                Filter: ((d_year = 1998) AND (d_moy = 4))
+  ->  GroupAggregate  (cost=184.50..184.53 rows=1 width=236)
+        Group Key: i.i_item_id, i.i_item_desc, s.s_store_id, s.s_store_name
+        ->  Sort  (cost=184.50..184.51 rows=1 width=200)
+              Sort Key: i.i_item_id, i.i_item_desc, s.s_store_id, s.s_store_name
+              ->  Nested Loop  (cost=178.04..184.49 rows=1 width=200)
+                    Join Filter: (s.s_store_sk = m.store_sk)
+                    ->  Nested Loop  (cost=178.04..180.32 rows=1 width=182)
+                          Join Filter: ((m.customer_sk = cs.cs_bill_customer_sk) AND (m.item_sk = cs.cs_item_sk))
+                          ->  Nested Loop  (cost=0.29..2.53 rows=1 width=162)
+                                ->  CTE Scan on matched_store_returns m  (cost=0.00..0.02 rows=1 width=40)
+                                ->  Index Scan using item_pkey on item i  (cost=0.29..2.51 rows=1 width=122)
+                                      Index Cond: (i_item_sk = m.item_sk)
+                          ->  GroupAggregate  (cost=177.75..177.77 rows=1 width=40)
+                                Group Key: cs.cs_bill_customer_sk, cs.cs_item_sk
+                                ->  Sort  (cost=177.75..177.75 rows=1 width=14)
+                                      Sort Key: cs.cs_bill_customer_sk, cs.cs_item_sk
+                                      ->  Nested Loop  (cost=0.75..177.74 rows=1 width=14)
+                                            ->  Nested Loop  (cost=0.46..177.42 rows=1 width=18)
+                                                  ->  HashAggregate  (cost=0.03..0.04 rows=1 width=8)
+                                                        Group Key: m_1.customer_sk, m_1.item_sk
+                                                        ->  CTE Scan on matched_store_returns m_1  (cost=0.00..0.02 rows=1 width=8)
+                                                  ->  Index Scan using catalog_sales_pkey on catalog_sales cs  (cost=0.43..177.37 rows=1 width=18)
+                                                        Index Cond: (cs_item_sk = m_1.item_sk)
+                                                        Filter: (m_1.customer_sk = cs_bill_customer_sk)
+                                            ->  Index Scan using date_dim_pkey on date_dim sold_date  (cost=0.29..0.32 rows=1 width=4)
+                                                  Index Cond: (d_date_sk = cs.cs_sold_date_sk)
+                                                  Filter: ((d_moy >= 4) AND (d_moy <= 10) AND (d_year = 1998))
+                    ->  Seq Scan on store s  (cost=0.00..3.52 rows=52 width=26)

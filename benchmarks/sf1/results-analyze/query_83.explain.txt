@@ -1,0 +1,165 @@
+Limit  (cost=32979.26..32994.69 rows=10 width=169) (actual time=49.539..50.173 rows=36 loops=1)
+  Buffers: shared hit=43812 read=5736
+  ->  Incremental Sort  (cost=32979.26..32994.69 rows=10 width=169) (actual time=49.539..50.170 rows=36 loops=1)
+        Sort Key: item.i_item_id, (sum(store_returns.sr_return_quantity))
+        Presorted Key: item.i_item_id
+        Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+        Buffers: shared hit=43812 read=5736
+        ->  Merge Join  (cost=32977.58..32994.24 rows=10 width=169) (actual time=47.621..50.150 rows=36 loops=1)
+              Merge Cond: (item.i_item_id = item_2.i_item_id)
+              Buffers: shared hit=43809 read=5736
+              ->  Merge Join  (cost=22034.02..22045.81 rows=20 width=50) (actual time=32.843..34.703 rows=212 loops=1)
+                    Merge Cond: (item.i_item_id = item_1.i_item_id)
+                    Buffers: shared hit=31960 read=5736
+                    ->  Finalize GroupAggregate  (cost=13345.36..13354.68 rows=80 width=25) (actual time=16.393..17.623 rows=2693 loops=1)
+                          Group Key: item.i_item_id
+                          Buffers: shared hit=14369 read=4486
+                          ->  Gather Merge  (cost=13345.36..13353.55 rows=66 width=25) (actual time=16.390..17.334 rows=3059 loops=1)
+                                Workers Planned: 2
+                                Workers Launched: 2
+                                Buffers: shared hit=14369 read=4486
+                                ->  Partial GroupAggregate  (cost=12345.33..12345.91 rows=33 width=25) (actual time=15.332..15.480 rows=1022 loops=3)
+                                      Group Key: item.i_item_id
+                                      Buffers: shared hit=14369 read=4486
+                                      ->  Sort  (cost=12345.33..12345.42 rows=33 width=21) (actual time=15.328..15.358 rows=1086 loops=3)
+                                            Sort Key: item.i_item_id
+                                            Sort Method: quicksort  Memory: 99kB
+                                            Buffers: shared hit=14369 read=4486
+                                            Worker 0:  Sort Method: quicksort  Memory: 100kB
+                                            Worker 1:  Sort Method: quicksort  Memory: 100kB
+                                            ->  Nested Loop  (cost=5891.72..12344.50 rows=33 width=21) (actual time=5.137..14.425 rows=1086 loops=3)
+                                                  Buffers: shared hit=14355 read=4486
+                                                  ->  Parallel Hash Join  (cost=5891.44..12333.84 rows=33 width=8) (actual time=5.121..12.840 rows=1086 loops=3)
+                                                        Hash Cond: (store_returns.sr_returned_date_sk = date_dim.d_date_sk)
+                                                        Buffers: shared hit=4582 read=4486
+                                                        ->  Parallel Seq Scan on store_returns  (cost=0.00..5992.98 rows=119798 width=12) (actual time=0.008..4.243 rows=95838 loops=3)
+                                                              Buffers: shared hit=309 read=4486
+                                                        ->  Parallel Hash  (cost=5891.29..5891.29 rows=12 width=4) (actual time=5.031..5.034 rows=7 loops=3)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                              Buffers: shared hit=4245
+                                                              ->  Parallel Hash Semi Join  (cost=3943.66..5891.29 rows=12 width=4) (actual time=4.465..5.014 rows=7 loops=3)
+                                                                    Hash Cond: (date_dim.d_date = date_dim_1.d_date)
+                                                                    Buffers: shared hit=4245
+                                                                    ->  Parallel Seq Scan on date_dim  (cost=0.00..1834.70 rows=42970 width=8) (actual time=0.001..0.782 rows=24350 loops=3)
+                                                                          Buffers: shared hit=1405
+                                                                    ->  Parallel Hash  (cost=3943.51..3943.51 rows=12 width=4) (actual time=3.331..3.334 rows=7 loops=3)
+                                                                          Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                          Buffers: shared hit=2810
+                                                                          ->  Parallel Hash Semi Join  (cost=1995.86..3943.51 rows=12 width=4) (actual time=2.733..3.311 rows=7 loops=3)
+                                                                                Hash Cond: (date_dim_1.d_week_seq = date_dim_2.d_week_seq)
+                                                                                Buffers: shared hit=2810
+                                                                                ->  Parallel Seq Scan on date_dim date_dim_1  (cost=0.00..1834.70 rows=42970 width=8) (actual time=0.001..0.876 rows=24350 loops=3)
+                                                                                      Buffers: shared hit=1405
+                                                                                ->  Parallel Hash  (cost=1995.84..1995.84 rows=2 width=4) (actual time=1.446..1.447 rows=1 loops=3)
+                                                                                      Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                                      Buffers: shared hit=1405
+                                                                                      ->  Parallel Seq Scan on date_dim date_dim_2  (cost=0.00..1995.84 rows=2 width=4) (actual time=0.954..1.432 rows=1 loops=3)
+                                                                                            Filter: (d_date = ANY ('{1999-03-05,1999-09-20,1999-11-21}'::date[]))
+                                                                                            Rows Removed by Filter: 24349
+                                                                                            Buffers: shared hit=1405
+                                                  ->  Index Scan using item_pkey on item  (cost=0.29..0.32 rows=1 width=21) (actual time=0.001..0.001 rows=1 loops=3257)
+                                                        Index Cond: (i_item_sk = store_returns.sr_item_sk)
+                                                        Buffers: shared hit=9773
+                    ->  Finalize GroupAggregate  (cost=8688.66..8690.48 rows=20 width=25) (actual time=16.442..16.741 rows=701 loops=1)
+                          Group Key: item_1.i_item_id
+                          Buffers: shared hit=17591 read=1250
+                          ->  Gather Merge  (cost=8688.66..8690.22 rows=12 width=25) (actual time=16.439..16.669 rows=709 loops=1)
+                                Workers Planned: 1
+                                Workers Launched: 1
+                                Buffers: shared hit=17591 read=1250
+                                ->  Partial GroupAggregate  (cost=7688.65..7688.86 rows=12 width=25) (actual time=15.592..15.644 rows=354 loops=2)
+                                      Group Key: item_1.i_item_id
+                                      Buffers: shared hit=17591 read=1250
+                                      ->  Sort  (cost=7688.65..7688.68 rows=12 width=21) (actual time=15.589..15.603 rows=362 loops=2)
+                                            Sort Key: item_1.i_item_id
+                                            Sort Method: quicksort  Memory: 42kB
+                                            Buffers: shared hit=17591 read=1250
+                                            Worker 0:  Sort Method: quicksort  Memory: 41kB
+                                            ->  Nested Loop  (cost=3944.25..7688.44 rows=12 width=21) (actual time=4.375..15.344 rows=362 loops=2)
+                                                  Buffers: shared hit=17584 read=1250
+                                                  ->  Parallel Hash Semi Join  (cost=3943.96..7683.91 rows=12 width=8) (actual time=4.367..14.804 rows=362 loops=2)
+                                                        Hash Cond: (date_dim_3.d_date = date_dim_4.d_date)
+                                                        Buffers: shared hit=15408 read=1250
+                                                        ->  Nested Loop  (cost=0.30..3634.15 rows=40369 width=12) (actual time=0.017..9.374 rows=34318 loops=2)
+                                                              Buffers: shared hit=12580 read=1250
+                                                              ->  Parallel Seq Scan on web_returns  (cost=0.00..1750.14 rows=42214 width=12) (actual time=0.008..2.291 rows=35882 loops=2)
+                                                                    Buffers: shared hit=78 read=1250
+                                                              ->  Memoize  (cost=0.30..0.41 rows=1 width=8) (actual time=0.000..0.000 rows=1 loops=71763)
+                                                                    Cache Key: web_returns.wr_returned_date_sk
+                                                                    Cache Mode: logical
+                                                                    Hits: 34326  Misses: 2086  Evictions: 0  Overflows: 0  Memory Usage: 220kB
+                                                                    Buffers: shared hit=12502
+                                                                    Worker 0:  Hits: 33268  Misses: 2083  Evictions: 0  Overflows: 0  Memory Usage: 220kB
+                                                                    ->  Index Scan using date_dim_pkey on date_dim date_dim_3  (cost=0.29..0.40 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=4169)
+                                                                          Index Cond: (d_date_sk = web_returns.wr_returned_date_sk)
+                                                                          Buffers: shared hit=12502
+                                                        ->  Parallel Hash  (cost=3943.51..3943.51 rows=12 width=4) (actual time=4.206..4.207 rows=10 loops=2)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                              Buffers: shared hit=2813
+                                                              ->  Parallel Hash Semi Join  (cost=1995.86..3943.51 rows=12 width=4) (actual time=2.857..4.188 rows=10 loops=2)
+                                                                    Hash Cond: (date_dim_4.d_week_seq = date_dim_5.d_week_seq)
+                                                                    Buffers: shared hit=2813
+                                                                    ->  Parallel Seq Scan on date_dim date_dim_4  (cost=0.00..1834.70 rows=42970 width=8) (actual time=0.001..1.238 rows=36524 loops=2)
+                                                                          Buffers: shared hit=1405
+                                                                    ->  Parallel Hash  (cost=1995.84..1995.84 rows=2 width=4) (actual time=1.476..1.477 rows=2 loops=2)
+                                                                          Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                          Buffers: shared hit=1405
+                                                                          ->  Parallel Seq Scan on date_dim date_dim_5  (cost=0.00..1995.84 rows=2 width=4) (actual time=0.683..1.465 rows=2 loops=2)
+                                                                                Filter: (d_date = ANY ('{1999-03-05,1999-09-20,1999-11-21}'::date[]))
+                                                                                Rows Removed by Filter: 36523
+                                                                                Buffers: shared hit=1405
+                                                  ->  Index Scan using item_pkey on item item_1  (cost=0.29..0.38 rows=1 width=21) (actual time=0.001..0.001 rows=1 loops=725)
+                                                        Index Cond: (i_item_sk = web_returns.wr_item_sk)
+                                                        Buffers: shared hit=2176
+              ->  Finalize GroupAggregate  (cost=10943.56..10947.21 rows=41 width=25) (actual time=14.745..15.275 rows=1413 loops=1)
+                    Group Key: item_2.i_item_id
+                    Buffers: shared hit=11849
+                    ->  Gather Merge  (cost=10943.56..10946.68 rows=24 width=25) (actual time=14.744..15.132 rows=1481 loops=1)
+                          Workers Planned: 1
+                          Workers Launched: 1
+                          Buffers: shared hit=11849
+                          ->  Partial GroupAggregate  (cost=9943.55..9943.97 rows=24 width=25) (actual time=13.985..14.087 rows=744 loops=2)
+                                Group Key: item_2.i_item_id
+                                Buffers: shared hit=11849
+                                ->  Sort  (cost=9943.55..9943.61 rows=24 width=21) (actual time=13.981..14.000 rows=781 loops=2)
+                                      Sort Key: item_2.i_item_id
+                                      Sort Method: quicksort  Memory: 64kB
+                                      Buffers: shared hit=11849
+                                      Worker 0:  Sort Method: quicksort  Memory: 59kB
+                                      ->  Nested Loop  (cost=5891.72..9943.00 rows=24 width=21) (actual time=6.936..13.419 rows=786 loops=2)
+                                            Buffers: shared hit=11842
+                                            ->  Parallel Hash Join  (cost=5891.44..9934.82 rows=24 width=8) (actual time=6.925..12.616 rows=786 loops=2)
+                                                  Hash Cond: (catalog_returns.cr_returned_date_sk = date_dim_6.d_date_sk)
+                                                  Buffers: shared hit=7122
+                                                  ->  Parallel Seq Scan on catalog_returns  (cost=0.00..3725.45 rows=84745 width=12) (actual time=0.003..3.005 rows=72034 loops=2)
+                                                        Buffers: shared hit=2878
+                                                  ->  Parallel Hash  (cost=5891.29..5891.29 rows=12 width=4) (actual time=6.489..6.491 rows=10 loops=2)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                        Buffers: shared hit=4230
+                                                        ->  Parallel Hash Semi Join  (cost=3943.66..5891.29 rows=12 width=4) (actual time=5.273..6.480 rows=10 loops=2)
+                                                              Hash Cond: (date_dim_6.d_date = date_dim_7.d_date)
+                                                              Buffers: shared hit=4230
+                                                              ->  Parallel Seq Scan on date_dim date_dim_6  (cost=0.00..1834.70 rows=42970 width=8) (actual time=0.001..1.139 rows=36524 loops=2)
+                                                                    Buffers: shared hit=1405
+                                                              ->  Parallel Hash  (cost=3943.51..3943.51 rows=12 width=4) (actual time=4.035..4.036 rows=10 loops=2)
+                                                                    Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                    Buffers: shared hit=2810
+                                                                    ->  Parallel Hash Semi Join  (cost=1995.86..3943.51 rows=12 width=4) (actual time=2.693..4.022 rows=10 loops=2)
+                                                                          Hash Cond: (date_dim_7.d_week_seq = date_dim_8.d_week_seq)
+                                                                          Buffers: shared hit=2810
+                                                                          ->  Parallel Seq Scan on date_dim date_dim_7  (cost=0.00..1834.70 rows=42970 width=8) (actual time=0.002..1.226 rows=36524 loops=2)
+                                                                                Buffers: shared hit=1405
+                                                                          ->  Parallel Hash  (cost=1995.84..1995.84 rows=2 width=4) (actual time=1.287..1.287 rows=2 loops=2)
+                                                                                Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                                Buffers: shared hit=1405
+                                                                                ->  Parallel Seq Scan on date_dim date_dim_8  (cost=0.00..1995.84 rows=2 width=4) (actual time=0.633..1.274 rows=2 loops=2)
+                                                                                      Filter: (d_date = ANY ('{1999-03-05,1999-09-20,1999-11-21}'::date[]))
+                                                                                      Rows Removed by Filter: 36523
+                                                                                      Buffers: shared hit=1405
+                                            ->  Index Scan using item_pkey on item item_2  (cost=0.29..0.34 rows=1 width=21) (actual time=0.001..0.001 rows=1 loops=1573)
+                                                  Index Cond: (i_item_sk = catalog_returns.cr_item_sk)
+                                                  Buffers: shared hit=4720
+Planning:
+  Buffers: shared hit=399
+Planning Time: 0.694 ms
+Execution Time: 50.350 ms

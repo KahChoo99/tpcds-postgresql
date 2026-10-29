@@ -1,0 +1,57 @@
+SET
+Limit  (cost=8010.36..8010.39 rows=9 width=253) (actual time=4524.614..4524.627 rows=100 loops=1)
+  Buffers: shared hit=62766
+  CTE customer_total_return
+    ->  GroupAggregate  (cost=4699.33..4706.71 rows=328 width=39) (actual time=20.701..23.395 rows=13357 loops=1)
+          Group Key: web_returns.wr_returning_customer_sk, customer_address_1.ca_state
+          Buffers: shared hit=43284
+          ->  Sort  (cost=4699.33..4700.15 rows=328 width=13) (actual time=20.697..21.042 rows=13517 loops=1)
+                Sort Key: web_returns.wr_returning_customer_sk, customer_address_1.ca_state
+                Sort Method: quicksort  Memory: 911kB
+                Buffers: shared hit=43284
+                ->  Nested Loop  (cost=2322.97..4685.62 rows=328 width=13) (actual time=3.041..19.163 rows=13517 loops=1)
+                      Buffers: shared hit=43284
+                      ->  Hash Join  (cost=2322.68..4556.69 rows=343 width=14) (actual time=3.034..9.975 rows=13862 loops=1)
+                            Hash Cond: (web_returns.wr_returned_date_sk = date_dim.d_date_sk)
+                            Buffers: shared hit=2733
+                            ->  Seq Scan on web_returns  (cost=0.00..2045.63 rows=71763 width=18) (actual time=0.001..2.840 rows=71763 loops=1)
+                                  Buffers: shared hit=1328
+                            ->  Hash  (cost=2318.11..2318.11 rows=365 width=4) (actual time=3.024..3.026 rows=365 loops=1)
+                                  Buckets: 1024  Batches: 1  Memory Usage: 21kB
+                                  Buffers: shared hit=1405
+                                  ->  Seq Scan on date_dim  (cost=0.00..2318.11 rows=365 width=4) (actual time=1.545..3.004 rows=365 loops=1)
+                                        Filter: (d_year = 2002)
+                                        Rows Removed by Filter: 72684
+                                        Buffers: shared hit=1405
+                      ->  Index Scan using customer_address_pkey on customer_address customer_address_1  (cost=0.29..0.38 rows=1 width=7) (actual time=0.001..0.001 rows=1 loops=13862)
+                            Index Cond: (ca_address_sk = web_returns.wr_returning_addr_sk)
+                            Buffers: shared hit=40551
+  ->  Sort  (cost=3303.65..3303.68 rows=9 width=253) (actual time=4524.613..4524.616 rows=100 loops=1)
+        Sort Key: customer.c_customer_id, customer.c_salutation, customer.c_first_name, customer.c_last_name, customer.c_preferred_cust_flag, customer.c_birth_day, customer.c_birth_month, customer.c_birth_year, customer.c_birth_country, customer.c_login, customer.c_email_address, customer.c_last_review_date, ctr1.ctr_total_return
+        Sort Method: top-N heapsort  Memory: 68kB
+        Buffers: shared hit=62766
+        ->  Nested Loop  (cost=0.58..3303.51 rows=9 width=253) (actual time=57.693..4524.339 rows=241 loops=1)
+              Buffers: shared hit=62754
+              ->  Nested Loop  (cost=0.29..3264.37 rows=109 width=257) (actual time=27.451..4518.559 rows=3245 loops=1)
+                    Buffers: shared hit=53019
+                    ->  CTE Scan on customer_total_return ctr1  (cost=0.00..2434.58 rows=109 width=36) (actual time=27.443..4511.535 rows=3255 loops=1)
+                          Filter: (ctr_total_return > (SubPlan 2))
+                          Rows Removed by Filter: 10102
+                          Buffers: shared hit=43284
+                          SubPlan 2
+                            ->  Aggregate  (cost=7.39..7.40 rows=1 width=32) (actual time=0.336..0.336 rows=1 loops=13357)
+                                  ->  CTE Scan on customer_total_return ctr2  (cost=0.00..7.38 rows=2 width=32) (actual time=0.009..0.317 rows=383 loops=13357)
+                                        Filter: (ctr1.ctr_state = ctr_state)
+                                        Rows Removed by Filter: 12974
+                    ->  Index Scan using customer_pkey on customer  (cost=0.29..7.61 rows=1 width=229) (actual time=0.002..0.002 rows=1 loops=3255)
+                          Index Cond: (c_customer_sk = ctr1.ctr_customer_sk)
+                          Buffers: shared hit=9735
+              ->  Index Scan using customer_address_pkey on customer_address  (cost=0.29..0.36 rows=1 width=4) (actual time=0.002..0.002 rows=0 loops=3245)
+                    Index Cond: (ca_address_sk = customer.c_current_addr_sk)
+                    Filter: (ca_state = 'TX'::bpchar)
+                    Rows Removed by Filter: 1
+                    Buffers: shared hit=9735
+Planning:
+  Buffers: shared hit=285
+Planning Time: 0.414 ms
+Execution Time: 4524.864 ms

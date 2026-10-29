@@ -1,0 +1,34 @@
+-- statement 1
+Limit  (cost=12149.77..12149.80 rows=9 width=236)
+  ->  Sort  (cost=12149.77..12149.80 rows=9 width=236)
+        Sort Key: customer.c_customer_id, customer.c_salutation, customer.c_first_name, customer.c_last_name, customer_address.ca_street_number, customer_address.ca_street_name, customer_address.ca_street_type, customer_address.ca_suite_number, customer_address.ca_city, customer_address.ca_county, customer_address.ca_zip, customer_address.ca_country, customer_address.ca_gmt_offset, customer_address.ca_location_type, ctr1.ctr_total_return
+        ->  Nested Loop  (cost=10818.42..12149.63 rows=9 width=236)
+              ->  Nested Loop  (cost=10818.12..11969.94 rows=551 width=116)
+                    ->  Subquery Scan on ctr1  (cost=10817.83..10871.55 rows=551 width=36)
+                          Filter: (ctr1.ctr_total_return > (ctr1.avg_state_return * 1.2))
+                          ->  WindowAgg  (cost=10817.83..10846.76 rows=1653 width=71)
+                                ->  Sort  (cost=10817.83..10821.96 rows=1653 width=39)
+                                      Sort Key: customer_address_1.ca_state
+                                      ->  Finalize GroupAggregate  (cost=10520.47..10729.47 rows=1653 width=39)
+                                            Group Key: catalog_returns.cr_returning_customer_sk, customer_address_1.ca_state
+                                            ->  Gather Merge  (cost=10520.47..10695.03 rows=1378 width=39)
+                                                  Workers Planned: 2
+                                                  ->  Partial GroupAggregate  (cost=9520.45..9535.95 rows=689 width=39)
+                                                        Group Key: catalog_returns.cr_returning_customer_sk, customer_address_1.ca_state
+                                                        ->  Sort  (cost=9520.45..9522.17 rows=689 width=13)
+                                                              Sort Key: catalog_returns.cr_returning_customer_sk, customer_address_1.ca_state
+                                                              ->  Nested Loop  (cost=1964.65..9487.96 rows=689 width=13)
+                                                                    ->  Parallel Hash Join  (cost=1964.36..9257.97 rows=726 width=14)
+                                                                          Hash Cond: (catalog_returns.cr_returned_date_sk = date_dim.d_date_sk)
+                                                                          ->  Parallel Seq Scan on catalog_returns  (cost=0.00..6978.05 rows=120205 width=18)
+                                                                          ->  Parallel Hash  (cost=1961.12..1961.12 rows=259 width=4)
+                                                                                ->  Parallel Seq Scan on date_dim  (cost=0.00..1961.12 rows=259 width=4)
+                                                                                      Filter: (d_year = 1999)
+                                                                    ->  Index Scan using customer_address_pkey on customer_address customer_address_1  (cost=0.29..0.32 rows=1 width=7)
+                                                                          Index Cond: (ca_address_sk = catalog_returns.cr_returning_addr_sk)
+                                                                          Filter: (ca_state IS NOT NULL)
+                    ->  Index Scan using customer_pkey on customer  (cost=0.29..1.99 rows=1 width=88)
+                          Index Cond: (c_customer_sk = ctr1.ctr_customer_sk)
+              ->  Index Scan using customer_address_pkey on customer_address  (cost=0.29..0.33 rows=1 width=128)
+                    Index Cond: (ca_address_sk = customer.c_current_addr_sk)
+                    Filter: (ca_state = 'WV'::bpchar)

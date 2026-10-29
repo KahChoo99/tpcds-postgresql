@@ -1,0 +1,42 @@
+-- statement 1
+Limit  (cost=75634.84..75634.88 rows=17 width=11)
+  InitPlan 1 (returns $0)
+    ->  Unique  (cost=2520.41..2520.55 rows=28 width=4)
+          ->  Sort  (cost=2520.41..2520.48 rows=28 width=4)
+                Sort Key: date_dim.d_month_seq
+                ->  Seq Scan on date_dim  (cost=0.00..2519.73 rows=28 width=4)
+                      Filter: ((d_year = 2000) AND (d_moy = 2))
+  ->  Sort  (cost=73114.29..73114.33 rows=17 width=11)
+        Sort Key: (count(*)), a.ca_state
+        ->  Finalize GroupAggregate  (cost=73103.65..73113.94 rows=17 width=11)
+              Group Key: a.ca_state
+              Filter: (count(*) >= 10)
+              ->  Gather Merge  (cost=73103.65..73113.05 rows=51 width=11)
+                    Workers Planned: 1
+                    Params Evaluated: $0
+                    ->  Partial GroupAggregate  (cost=72103.64..72107.30 rows=51 width=11)
+                          Group Key: a.ca_state
+                          ->  Sort  (cost=72103.64..72104.69 rows=421 width=3)
+                                Sort Key: a.ca_state
+                                ->  Nested Loop  (cost=4148.62..72085.28 rows=421 width=3)
+                                      ->  Nested Loop  (cost=4148.33..71949.04 rows=421 width=4)
+                                            ->  Parallel Hash Join  (cost=4148.03..71810.84 rows=441 width=4)
+                                                  Hash Cond: (s.ss_sold_date_sk = d.d_date_sk)
+                                                  ->  Nested Loop  (cost=2186.68..66890.77 rows=1127068 width=8)
+                                                        ->  Hash Join  (cost=2186.25..4183.55 rows=5086 width=4)
+                                                              Hash Cond: (i.i_category = item.i_category)
+                                                              Join Filter: (i.i_current_price > (1.2 * (avg(item.i_current_price))))
+                                                              ->  Parallel Seq Scan on item i  (cost=0.00..1948.94 rows=15294 width=61)
+                                                              ->  Hash  (cost=2186.12..2186.12 rows=10 width=83)
+                                                                    ->  HashAggregate  (cost=2186.00..2186.12 rows=10 width=83)
+                                                                          Group Key: item.i_category
+                                                                          ->  Seq Scan on item  (cost=0.00..2056.00 rows=26000 width=57)
+                                                        ->  Index Scan using store_sales_pkey on store_sales s  (cost=0.43..9.85 rows=248 width=12)
+                                                              Index Cond: (ss_item_sk = i.i_item_sk)
+                                                  ->  Parallel Hash  (cost=1961.12..1961.12 rows=18 width=4)
+                                                        ->  Parallel Seq Scan on date_dim d  (cost=0.00..1961.12 rows=18 width=4)
+                                                              Filter: (d_month_seq = $0)
+                                            ->  Index Scan using customer_pkey on customer c  (cost=0.29..0.31 rows=1 width=8)
+                                                  Index Cond: (c_customer_sk = s.ss_customer_sk)
+                                      ->  Index Scan using customer_address_pkey on customer_address a  (cost=0.29..0.32 rows=1 width=7)
+                                            Index Cond: (ca_address_sk = c.c_current_addr_sk)

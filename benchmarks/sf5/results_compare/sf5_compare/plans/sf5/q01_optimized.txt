@@ -1,0 +1,33 @@
+-- statement 1
+Limit  (cost=37260.10..37260.35 rows=100 width=17)
+  CTE customer_total_return
+    ->  GroupAggregate  (cost=32965.05..33883.68 rows=6642 width=40)
+          Group Key: sr.sr_customer_sk, sr.sr_store_sk
+          ->  Gather Merge  (cost=32965.05..33750.84 rows=6642 width=14)
+                Workers Planned: 3
+                ->  Sort  (cost=31965.01..31970.37 rows=2143 width=14)
+                      Sort Key: sr.sr_customer_sk, sr.sr_store_sk
+                      ->  Hash Join  (cost=1968.09..31846.45 rows=2143 width=14)
+                            Hash Cond: (sr.sr_store_sk = s.s_store_sk)
+                            ->  Parallel Hash Join  (cost=1963.79..31835.86 rows=2220 width=14)
+                                  Hash Cond: (sr.sr_returned_date_sk = d.d_date_sk)
+                                  ->  Parallel Seq Scan on store_returns sr  (cost=0.00..28654.42 rows=463842 width=18)
+                                  ->  Parallel Hash  (cost=1961.12..1961.12 rows=213 width=4)
+                                        ->  Parallel Seq Scan on date_dim d  (cost=0.00..1961.12 rows=213 width=4)
+                                              Filter: (d_year = 1998)
+                            ->  Hash  (cost=3.65..3.65 rows=52 width=4)
+                                  ->  Seq Scan on store s  (cost=0.00..3.65 rows=52 width=4)
+                                        Filter: (s_state = 'TN'::bpchar)
+  ->  Sort  (cost=3376.41..3381.95 rows=2214 width=17)
+        Sort Key: c.c_customer_id
+        ->  Nested Loop  (cost=171.47..3291.80 rows=2214 width=17)
+              ->  Hash Join  (cost=171.05..321.50 rows=2214 width=4)
+                    Hash Cond: (ctr.ctr_store_sk = customer_total_return.ctr_store_sk)
+                    Join Filter: (ctr.ctr_total_return > ((avg(customer_total_return.ctr_total_return)) * 1.2))
+                    ->  CTE Scan on customer_total_return ctr  (cost=0.00..132.84 rows=6642 width=40)
+                    ->  Hash  (cost=168.55..168.55 rows=200 width=36)
+                          ->  HashAggregate  (cost=166.05..168.55 rows=200 width=36)
+                                Group Key: customer_total_return.ctr_store_sk
+                                ->  CTE Scan on customer_total_return  (cost=0.00..132.84 rows=6642 width=36)
+              ->  Index Scan using customer_pkey on customer c  (cost=0.42..1.34 rows=1 width=21)
+                    Index Cond: (c_customer_sk = ctr.ctr_customer_sk)

@@ -1,0 +1,38 @@
+-- statement 1
+Limit  (cost=189598.52..189598.77 rows=100 width=69)
+  ->  Sort  (cost=189598.52..189941.35 rows=137132 width=69)
+        Sort Key: c.c_customer_id, c.c_last_name, c.c_first_name
+        ->  Hash Join  (cost=176916.30..184357.44 rows=137132 width=69)
+              Hash Cond: (ws.ws_bill_customer_sk = s.customer_sk)
+              Join Filter: (((avg(ws.ws_net_paid) FILTER (WHERE (d.d_year = 2002))) / (avg(ws.ws_net_paid) FILTER (WHERE (d.d_year = 2001)))) > (s.second_year_total / s.first_year_total))
+              ->  Nested Loop  (cost=45295.62..52724.13 rows=4753 width=141)
+                    ->  GroupAggregate  (cost=45295.32..47430.39 rows=4753 width=68)
+                          Group Key: ws.ws_bill_customer_sk
+                          Filter: (avg(ws.ws_net_paid) FILTER (WHERE (d.d_year = 2001)) > '0'::numeric)
+                          ->  Gather Merge  (cost=45295.32..47002.62 rows=14259 width=14)
+                                Workers Planned: 4
+                                ->  Sort  (cost=44295.27..44304.18 rows=3565 width=14)
+                                      Sort Key: ws.ws_bill_customer_sk
+                                      ->  Parallel Hash Join  (cost=1966.45..44084.94 rows=3565 width=14)
+                                            Hash Cond: (ws.ws_sold_date_sk = d.d_date_sk)
+                                            ->  Parallel Seq Scan on web_sales ws  (cost=0.00..41174.17 rows=359720 width=14)
+                                                  Filter: (ws_bill_customer_sk IS NOT NULL)
+                                            ->  Parallel Hash  (cost=1961.12..1961.12 rows=426 width=8)
+                                                  ->  Parallel Seq Scan on date_dim d  (cost=0.00..1961.12 rows=426 width=8)
+                                                        Filter: (d_year = ANY ('{2001,2002}'::integer[]))
+                    ->  Index Scan using customer_pkey on customer c  (cost=0.29..1.10 rows=1 width=73)
+                          Index Cond: (c_customer_sk = ws.ws_bill_customer_sk)
+              ->  Hash  (cost=131404.29..131404.29 rows=17311 width=68)
+                    ->  Subquery Scan on s  (cost=130322.35..131404.29 rows=17311 width=68)
+                          ->  HashAggregate  (cost=130322.35..131231.18 rows=17311 width=68)
+                                Group Key: ss.ss_customer_sk
+                                Filter: (avg(ss.ss_net_paid) FILTER (WHERE (d_1.d_year = 2001)) > '0'::numeric)
+                                ->  Gather  (cost=2966.45..129673.19 rows=51933 width=14)
+                                      Workers Planned: 4
+                                      ->  Parallel Hash Join  (cost=1966.45..123479.89 rows=12983 width=14)
+                                            Hash Cond: (ss.ss_sold_date_sk = d_1.d_date_sk)
+                                            ->  Parallel Seq Scan on store_sales ss  (cost=0.00..117906.80 rows=1373883 width=14)
+                                                  Filter: (ss_customer_sk IS NOT NULL)
+                                            ->  Parallel Hash  (cost=1961.12..1961.12 rows=426 width=8)
+                                                  ->  Parallel Seq Scan on date_dim d_1  (cost=0.00..1961.12 rows=426 width=8)
+                                                        Filter: (d_year = ANY ('{2001,2002}'::integer[]))

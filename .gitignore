@@ -29,5 +29,9 @@ tpcds-results/
 
 corrected_queries/
 corrected_results/
+logs/
 
-/benchmarks
+# /benchmarks
+
+notebook.ipynb
+

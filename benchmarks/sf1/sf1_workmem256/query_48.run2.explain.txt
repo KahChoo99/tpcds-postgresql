@@ -1,0 +1,53 @@
+SET
+Finalize Aggregate  (cost=103438.70..103438.71 rows=1 width=8) (actual time=212.015..214.137 rows=1 loops=1)
+  Buffers: shared hit=324553 read=56100
+  ->  Gather  (cost=103438.48..103438.69 rows=2 width=8) (actual time=211.930..214.128 rows=3 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=324553 read=56100
+        ->  Partial Aggregate  (cost=102438.48..102438.49 rows=1 width=8) (actual time=206.766..206.768 rows=1 loops=3)
+              Buffers: shared hit=324553 read=56100
+              ->  Nested Loop  (cost=1946.80..102438.48 rows=2 width=4) (actual time=12.833..206.744 rows=171 loops=3)
+                    Buffers: shared hit=324553 read=56100
+                    ->  Nested Loop  (cost=1946.37..102383.42 rows=70 width=14) (actual time=11.720..195.856 rows=6218 loops=3)
+                          Buffers: shared hit=254515 read=51652
+                          ->  Hash Join  (cost=1946.08..102117.41 rows=718 width=24) (actual time=11.671..171.244 rows=28198 loops=3)
+                                Hash Cond: (store_sales.ss_store_sk = store.s_store_sk)
+                                Buffers: shared hit=1562 read=51652
+                                ->  Parallel Hash Join  (cost=1944.81..102113.50 rows=752 width=28) (actual time=1.185..158.497 rows=28376 loops=3)
+                                      Hash Cond: (store_sales.ss_sold_date_sk = date_dim.d_date_sk)
+                                      Buffers: shared hit=1501 read=51652
+                                      ->  Parallel Seq Scan on store_sales  (cost=0.00..99755.05 rows=157568 width=32) (actual time=0.013..149.597 rows=144249 loops=3)
+                                            Filter: ((((ss_sales_price >= 100.00) AND (ss_sales_price <= 150.00)) OR ((ss_sales_price >= 50.00) AND (ss_sales_price <= 100.00)) OR ((ss_sales_price >= 150.00) AND (ss_sales_price <= 200.00))) AND (((ss_net_profit >= '0'::numeric) AND (ss_net_profit <= '2000'::numeric)) OR ((ss_net_profit >= '150'::numeric) AND (ss_net_profit <= '3000'::numeric)) OR ((ss_net_profit >= '50'::numeric) AND (ss_net_profit <= '25000'::numeric))))
+                                            Rows Removed by Filter: 815886
+                                            Buffers: shared hit=96 read=51652
+                                      ->  Parallel Hash  (cost=1942.12..1942.12 rows=215 width=4) (actual time=1.116..1.116 rows=122 loops=3)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                            Buffers: shared hit=1405
+                                            ->  Parallel Seq Scan on date_dim  (cost=0.00..1942.12 rows=215 width=4) (actual time=1.730..3.314 rows=365 loops=1)
+                                                  Filter: (d_year = 2002)
+                                                  Rows Removed by Filter: 72684
+                                                  Buffers: shared hit=1405
+                                ->  Hash  (cost=1.12..1.12 rows=12 width=4) (actual time=10.462..10.462 rows=12 loops=3)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                      Buffers: shared hit=3
+                                      ->  Seq Scan on store  (cost=0.00..1.12 rows=12 width=4) (actual time=10.454..10.456 rows=12 loops=3)
+                                            Buffers: shared hit=3
+                          ->  Index Scan using customer_address_pkey on customer_address  (cost=0.29..0.36 rows=1 width=7) (actual time=0.001..0.001 rows=0 loops=84595)
+                                Index Cond: (ca_address_sk = store_sales.ss_addr_sk)
+                                Filter: (((ca_country)::text = 'United States'::text) AND ((ca_state = ANY ('{KY,OH,NY}'::bpchar[])) OR (ca_state = ANY ('{AL,NE,LA}'::bpchar[])) OR (ca_state = ANY ('{MO,KS,VA}'::bpchar[]))) AND (((ca_state = ANY ('{KY,OH,NY}'::bpchar[])) AND (store_sales.ss_net_profit >= '0'::numeric) AND (store_sales.ss_net_profit <= '2000'::numeric)) OR ((ca_state = ANY ('{AL,NE,LA}'::bpchar[])) AND (store_sales.ss_net_profit >= '150'::numeric) AND (store_sales.ss_net_profit <= '3000'::numeric)) OR ((ca_state = ANY ('{MO,KS,VA}'::bpchar[])) AND (store_sales.ss_net_profit >= '50'::numeric) AND (store_sales.ss_net_profit <= '25000'::numeric))))
+                                Rows Removed by Filter: 1
+                                Buffers: shared hit=252953
+                    ->  Index Scan using customer_demographics_pkey on customer_demographics  (cost=0.43..0.78 rows=1 width=27) (actual time=0.002..0.002 rows=0 loops=18654)
+                          Index Cond: (cd_demo_sk = store_sales.ss_cdemo_sk)
+                          Filter: ((((cd_marital_status = 'W'::bpchar) AND (cd_education_status = '2 yr Degree'::bpchar)) OR ((cd_marital_status = 'M'::bpchar) AND (cd_education_status = '4 yr Degree'::bpchar)) OR ((cd_marital_status = 'U'::bpchar) AND (cd_education_status = 'Unknown'::bpchar))) AND (((cd_marital_status = 'W'::bpchar) AND (cd_education_status = '2 yr Degree'::bpchar) AND (store_sales.ss_sales_price >= 100.00) AND (store_sales.ss_sales_price <= 150.00)) OR ((cd_marital_status = 'M'::bpchar) AND (cd_education_status = '4 yr Degree'::bpchar) AND (store_sales.ss_sales_price >= 50.00) AND (store_sales.ss_sales_price <= 100.00)) OR ((cd_marital_status = 'U'::bpchar) AND (cd_education_status = 'Unknown'::bpchar) AND (store_sales.ss_sales_price >= 150.00) AND (store_sales.ss_sales_price <= 200.00))))
+                          Rows Removed by Filter: 1
+                          Buffers: shared hit=70038 read=4448
+Planning:
+  Buffers: shared hit=320 read=5
+Planning Time: 0.590 ms
+JIT:
+  Functions: 107
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 2.523 ms, Inlining 0.000 ms, Optimization 1.270 ms, Emission 30.141 ms, Total 33.934 ms
+Execution Time: 220.529 ms

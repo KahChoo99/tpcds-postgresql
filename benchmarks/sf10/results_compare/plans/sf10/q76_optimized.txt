@@ -1,0 +1,57 @@
+-- statement 1
+Limit  (cost=1138579.09..1138579.34 rows=100 width=163)
+  ->  Sort  (cost=1138579.09..1138623.29 rows=17680 width=163)
+        Sort Key: ('store'::text), ('ss_store_sk'::text), d.d_year, d.d_qoy, i.i_category
+        ->  Append  (cost=589679.29..1137903.37 rows=17680 width=163)
+              ->  Finalize GroupAggregate  (cost=589679.29..591886.09 rows=8000 width=163)
+                    Group Key: d.d_year, d.d_qoy, i.i_category
+                    ->  Gather Merge  (cost=589679.29..591546.09 rows=16000 width=99)
+                          Workers Planned: 2
+                          ->  Sort  (cost=588679.27..588699.27 rows=8000 width=99)
+                                Sort Key: d.d_year, d.d_qoy, i.i_category
+                                ->  Partial HashAggregate  (cost=588060.64..588160.64 rows=8000 width=99)
+                                      Group Key: d.d_year, d.d_qoy, i.i_category
+                                      ->  Parallel Hash Join  (cost=2372.26..581578.15 rows=518599 width=65)
+                                            Hash Cond: (s.ss_sold_date_sk = d.d_date_sk)
+                                            ->  Nested Loop  (cost=0.44..577782.37 rows=542430 width=61)
+                                                  ->  Parallel Seq Scan on item i  (cost=0.00..7433.00 rows=42500 width=55)
+                                                  ->  Index Scan using store_sales_pkey on store_sales s  (cost=0.44..13.26 rows=16 width=14)
+                                                        Index Cond: (ss_item_sk = i.i_item_sk)
+                                                        Filter: (ss_store_sk IS NULL)
+                                            ->  Parallel Hash  (cost=1834.70..1834.70 rows=42970 width=12)
+                                                  ->  Parallel Seq Scan on date_dim d  (cost=0.00..1834.70 rows=42970 width=12)
+              ->  Finalize GroupAggregate  (cost=189941.85..190164.69 rows=1680 width=163)
+                    Group Key: d_1.d_year, d_1.d_qoy, i_1.i_category
+                    ->  Gather Merge  (cost=189941.85..190122.69 rows=1400 width=99)
+                          Workers Planned: 2
+                          ->  Partial GroupAggregate  (cost=188941.82..188961.07 rows=700 width=99)
+                                Group Key: d_1.d_year, d_1.d_qoy, i_1.i_category
+                                ->  Sort  (cost=188941.82..188943.57 rows=700 width=65)
+                                      Sort Key: d_1.d_year, d_1.d_qoy, i_1.i_category
+                                      ->  Nested Loop  (cost=0.72..188908.74 rows=700 width=65)
+                                            ->  Nested Loop  (cost=0.43..188116.99 rows=700 width=61)
+                                                  ->  Parallel Seq Scan on item i_1  (cost=0.00..7433.00 rows=42500 width=55)
+                                                  ->  Index Scan using web_sales_pkey on web_sales w  (cost=0.43..4.24 rows=1 width=14)
+                                                        Index Cond: (ws_item_sk = i_1.i_item_sk)
+                                                        Filter: (ws_ship_customer_sk IS NULL)
+                                            ->  Index Scan using date_dim_pkey on date_dim d_1  (cost=0.29..1.13 rows=1 width=12)
+                                                  Index Cond: (d_date_sk = w.ws_sold_date_sk)
+              ->  Finalize GroupAggregate  (cost=353023.93..355764.19 rows=8000 width=163)
+                    Group Key: d_2.d_year, d_2.d_qoy, i_2.i_category
+                    ->  Gather Merge  (cost=353023.93..355424.19 rows=16000 width=99)
+                          Workers Planned: 2
+                          ->  Partial GroupAggregate  (cost=352023.91..352577.37 rows=8000 width=99)
+                                Group Key: d_2.d_year, d_2.d_qoy, i_2.i_category
+                                ->  Sort  (cost=352023.91..352099.48 rows=30231 width=65)
+                                      Sort Key: d_2.d_year, d_2.d_qoy, i_2.i_category
+                                      ->  Nested Loop  (cost=0.74..349774.15 rows=30231 width=65)
+                                            ->  Nested Loop  (cost=0.43..348400.49 rows=30402 width=61)
+                                                  ->  Parallel Seq Scan on item i_2  (cost=0.00..7433.00 rows=42500 width=55)
+                                                  ->  Index Scan using catalog_sales_pkey on catalog_sales c  (cost=0.43..8.01 rows=1 width=14)
+                                                        Index Cond: (cs_item_sk = i_2.i_item_sk)
+                                                        Filter: (cs_ship_addr_sk IS NULL)
+                                            ->  Memoize  (cost=0.30..0.34 rows=1 width=12)
+                                                  Cache Key: c.cs_sold_date_sk
+                                                  Cache Mode: logical
+                                                  ->  Index Scan using date_dim_pkey on date_dim d_2  (cost=0.29..0.33 rows=1 width=12)
+                                                        Index Cond: (d_date_sk = c.cs_sold_date_sk)

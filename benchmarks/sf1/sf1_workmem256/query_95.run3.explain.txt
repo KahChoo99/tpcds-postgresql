@@ -1,0 +1,94 @@
+SET
+Limit  (cost=662593.81..662593.82 rows=1 width=72) (actual time=4686.810..4687.032 rows=1 loops=1)
+  Buffers: shared hit=15636 read=53447, temp read=124903 written=17843
+  CTE ws_wh
+    ->  Hash Join  (cost=34961.14..304478.42 rows=7184966 width=12) (actual time=76.440..422.056 rows=6644004 loops=1)
+          Hash Cond: (ws1_1.ws_order_number = ws2.ws_order_number)
+          Join Filter: (ws1_1.ws_warehouse_sk <> ws2.ws_warehouse_sk)
+          Rows Removed by Join Filter: 2381030
+          Buffers: shared hit=1951 read=35599
+          ->  Seq Scan on web_sales ws1_1  (cost=0.00..25968.84 rows=719384 width=8) (actual time=0.017..33.300 rows=719384 loops=1)
+                Buffers: shared hit=991 read=17784
+          ->  Hash  (cost=25968.84..25968.84 rows=719384 width=8) (actual time=75.913..75.914 rows=719384 loops=1)
+                Buckets: 1048576  Batches: 1  Memory Usage: 36293kB
+                Buffers: shared hit=960 read=17815
+                ->  Seq Scan on web_sales ws2  (cost=0.00..25968.84 rows=719384 width=8) (actual time=0.012..37.000 rows=719384 loops=1)
+                      Buffers: shared hit=960 read=17815
+  ->  Sort  (cost=358115.39..358115.40 rows=1 width=72) (actual time=4506.035..4506.254 rows=1 loops=1)
+        Sort Key: (count(DISTINCT ws1.ws_order_number))
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=15636 read=53447, temp read=124903 written=17843
+        ->  Aggregate  (cost=358115.37..358115.38 rows=1 width=72) (actual time=4506.010..4506.229 rows=1 loops=1)
+              Buffers: shared hit=15633 read=53447, temp read=124903 written=17843
+              ->  Nested Loop  (cost=187462.94..358115.36 rows=1 width=16) (actual time=1913.621..4506.171 rows=18 loops=1)
+                    Join Filter: (ws1.ws_order_number = ws_wh.ws_order_number)
+                    Rows Removed by Join Filter: 455261
+                    Buffers: shared hit=15633 read=53447, temp read=124903 written=17843
+                    ->  Nested Loop Semi Join  (cost=25801.20..196449.12 rows=1 width=24) (actual time=1338.315..3900.596 rows=18 loops=1)
+                          Buffers: shared hit=15063 read=53177, temp read=107857 written=17046
+                          ->  Gather Merge  (cost=25262.64..25262.76 rows=1 width=16) (actual time=165.532..165.759 rows=26 loops=1)
+                                Workers Planned: 2
+                                Workers Launched: 2
+                                Buffers: shared hit=6401 read=17848
+                                ->  Sort  (cost=24262.62..24262.62 rows=1 width=16) (actual time=127.418..127.423 rows=9 loops=3)
+                                      Sort Key: ws1.ws_order_number
+                                      Sort Method: quicksort  Memory: 26kB
+                                      Buffers: shared hit=6401 read=17848
+                                      Worker 0:  Sort Method: quicksort  Memory: 25kB
+                                      Worker 1:  Sort Method: quicksort  Memory: 25kB
+                                      ->  Nested Loop  (cost=1463.55..24262.61 rows=1 width=16) (actual time=105.560..127.410 rows=9 loops=3)
+                                            Buffers: shared hit=6387 read=17848
+                                            ->  Hash Join  (cost=1463.26..24035.20 rows=702 width=20) (actual time=105.541..127.093 rows=479 loops=3)
+                                                  Hash Cond: (ws1.ws_web_site_sk = web_site.web_site_sk)
+                                                  Buffers: shared hit=2079 read=17848
+                                                  ->  Parallel Hash Join  (cost=1460.82..24020.15 rows=4214 width=24) (actual time=0.800..22.212 rows=3495 loops=3)
+                                                        Hash Cond: (ws1.ws_ship_addr_sk = customer_address.ca_address_sk)
+                                                        Buffers: shared hit=2015 read=17848
+                                                        ->  Parallel Seq Scan on web_sales ws1  (cost=0.00..21772.43 rows=299743 width=28) (actual time=0.023..31.852 rows=719384 loops=1)
+                                                              Buffers: shared hit=927 read=17848
+                                                        ->  Parallel Hash  (cost=1455.65..1455.65 rows=414 width=4) (actual time=0.735..0.735 rows=240 loops=3)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                              Buffers: shared hit=1088
+                                                              ->  Parallel Seq Scan on customer_address  (cost=0.00..1455.65 rows=414 width=4) (actual time=0.004..2.141 rows=721 loops=1)
+                                                                    Filter: (ca_state = 'SC'::bpchar)
+                                                                    Rows Removed by Filter: 49279
+                                                                    Buffers: shared hit=1088
+                                                  ->  Hash  (cost=2.38..2.38 rows=5 width=4) (actual time=104.726..104.726 rows=5 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                        Buffers: shared hit=6
+                                                        ->  Seq Scan on web_site  (cost=0.00..2.38 rows=5 width=4) (actual time=104.719..104.722 rows=5 loops=3)
+                                                              Filter: (web_company_name = 'pri'::bpchar)
+                                                              Rows Removed by Filter: 25
+                                                              Buffers: shared hit=6
+                                            ->  Index Scan using date_dim_pkey on date_dim  (cost=0.29..0.32 rows=1 width=4) (actual time=0.001..0.001 rows=0 loops=1436)
+                                                  Index Cond: (d_date_sk = ws1.ws_ship_date_sk)
+                                                  Filter: ((d_date >= '2000-05-01'::date) AND (d_date <= '2000-06-30'::date))
+                                                  Rows Removed by Filter: 1
+                                                  Buffers: shared hit=4308
+                          ->  Hash Join  (cost=538.56..171186.34 rows=387 width=8) (actual time=143.646..143.646 rows=1 loops=26)
+                                Hash Cond: (ws_wh_1.ws_order_number = web_returns.wr_order_number)
+                                Join Filter: (ws1.ws_order_number = ws_wh_1.ws_order_number)
+                                Buffers: shared hit=8662 read=35329, temp read=107857 written=17046
+                                ->  CTE Scan on ws_wh ws_wh_1  (cost=0.00..143699.32 rows=7184966 width=4) (actual time=4.248..133.718 rows=2583677 loops=18)
+                                      Buffers: shared hit=1381 read=35329, temp read=107857 written=17046
+                                ->  Hash  (cost=538.54..538.54 rows=2 width=4) (actual time=0.366..0.366 rows=1 loops=26)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                      Buffers: shared hit=7281
+                                      ->  Index Only Scan using web_returns_pkey on web_returns  (cost=0.29..538.54 rows=2 width=4) (actual time=0.252..0.365 rows=1 loops=26)
+                                            Index Cond: (wr_order_number = ws1.ws_order_number)
+                                            Heap Fetches: 0
+                                            Buffers: shared hit=7281
+                    ->  HashAggregate  (cost=161661.74..161663.74 rows=200 width=4) (actual time=31.895..33.135 rows=25293 loops=18)
+                          Group Key: ws_wh.ws_order_number
+                          Batches: 1  Memory Usage: 7201kB
+                          Buffers: shared hit=570 read=270, temp read=17046 written=797
+                          ->  CTE Scan on ws_wh  (cost=0.00..143699.32 rows=7184966 width=4) (actual time=0.004..274.500 rows=6644004 loops=1)
+                                Buffers: shared hit=570 read=270, temp read=17046 written=797
+Planning:
+  Buffers: shared hit=238
+Planning Time: 0.679 ms
+JIT:
+  Functions: 148
+  Options: Inlining true, Optimization true, Expressions true, Deforming true
+  Timing: Generation 3.023 ms, Inlining 69.793 ms, Optimization 241.903 ms, Emission 183.299 ms, Total 498.018 ms
+Execution Time: 4706.547 ms

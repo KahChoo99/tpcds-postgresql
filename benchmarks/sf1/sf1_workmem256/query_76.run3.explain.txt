@@ -1,0 +1,93 @@
+SET
+Limit  (cost=140278.88..140307.46 rows=100 width=163) (actual time=116.589..118.951 rows=100 loops=1)
+  Buffers: shared hit=26114 read=106954
+  ->  Finalize GroupAggregate  (cost=140278.88..144056.95 rows=13217 width=163) (actual time=102.075..104.433 rows=100 loops=1)
+        Group Key: ('store'::text), ('ss_cdemo_sk'::text), date_dim.d_year, date_dim.d_qoy, item.i_category
+        Buffers: shared hit=26114 read=106954
+        ->  Gather Merge  (cost=140278.88..143363.06 rows=26434 width=163) (actual time=102.065..104.374 rows=197 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=26114 read=106954
+              ->  Sort  (cost=139278.85..139311.90 rows=13217 width=163) (actual time=96.309..96.322 rows=253 loops=3)
+                    Sort Key: ('store'::text), ('ss_cdemo_sk'::text), date_dim.d_year, date_dim.d_qoy, item.i_category
+                    Sort Method: quicksort  Memory: 114kB
+                    Buffers: shared hit=26114 read=106954
+                    Worker 0:  Sort Method: quicksort  Memory: 103kB
+                    Worker 1:  Sort Method: quicksort  Memory: 64kB
+                    ->  Partial HashAggregate  (cost=138208.93..138374.14 rows=13217 width=163) (actual time=95.913..96.010 rows=385 loops=3)
+                          Group Key: ('store'::text), ('ss_cdemo_sk'::text), date_dim.d_year, date_dim.d_qoy, item.i_category
+                          Batches: 1  Memory Usage: 657kB
+                          Buffers: shared hit=26070 read=106954
+                          Worker 0:  Batches: 1  Memory Usage: 657kB
+                          Worker 1:  Batches: 1  Memory Usage: 529kB
+                          ->  Parallel Append  (cost=1476.53..137245.22 rows=55069 width=129) (actual time=12.695..91.109 rows=22906 loops=3)
+                                Buffers: shared hit=26070 read=106954
+                                ->  Parallel Hash Join  (cost=1476.53..67373.72 rows=51821 width=129) (actual time=6.329..53.641 rows=21687 loops=3)
+                                      Hash Cond: (store_sales.ss_item_sk = item.i_item_sk)
+                                      Buffers: shared hit=18147 read=51172
+                                      ->  Nested Loop  (cost=0.30..65761.42 rows=51821 width=18) (actual time=0.026..44.319 rows=21687 loops=3)
+                                            Buffers: shared hit=16909 read=51172
+                                            ->  Parallel Seq Scan on store_sales  (cost=0.00..63749.76 rows=54248 width=14) (actual time=0.016..35.563 rows=43233 loops=3)
+                                                  Filter: (ss_cdemo_sk IS NULL)
+                                                  Rows Removed by Filter: 916901
+                                                  Buffers: shared hit=576 read=51172
+                                            ->  Memoize  (cost=0.30..0.37 rows=1 width=12) (actual time=0.000..0.000 rows=1 loops=129700)
+                                                  Cache Key: store_sales.ss_sold_date_sk
+                                                  Cache Mode: logical
+                                                  Hits: 32281  Misses: 1810  Evictions: 0  Overflows: 0  Memory Usage: 198kB
+                                                  Buffers: shared hit=16333
+                                                  Worker 0:  Hits: 32875  Misses: 1813  Evictions: 0  Overflows: 0  Memory Usage: 199kB
+                                                  Worker 1:  Hits: 59097  Misses: 1824  Evictions: 0  Overflows: 0  Memory Usage: 200kB
+                                                  ->  Index Scan using date_dim_pkey on date_dim  (cost=0.29..0.36 rows=1 width=12) (actual time=0.001..0.001 rows=1 loops=5447)
+                                                        Index Cond: (d_date_sk = store_sales.ss_sold_date_sk)
+                                                        Buffers: shared hit=16333
+                                      ->  Parallel Hash  (cost=1343.88..1343.88 rows=10588 width=55) (actual time=6.242..6.242 rows=6000 loops=3)
+                                            Buckets: 32768  Batches: 1  Memory Usage: 1824kB
+                                            Buffers: shared hit=1238
+                                            ->  Parallel Seq Scan on item  (cost=0.00..1343.88 rows=10588 width=55) (actual time=13.528..16.852 rows=18000 loops=1)
+                                                  Buffers: shared hit=1238
+                                ->  Parallel Hash Join  (cost=1476.53..47065.16 rows=3188 width=129) (actual time=9.575..41.465 rows=1792 loops=2)
+                                      Hash Cond: (catalog_sales.cs_item_sk = item_1.i_item_sk)
+                                      Buffers: shared hit=6998 read=37203
+                                      ->  Nested Loop  (cost=0.30..45580.56 rows=3188 width=18) (actual time=0.040..31.422 rows=1792 loops=2)
+                                            Buffers: shared hit=5760 read=37203
+                                            ->  Parallel Seq Scan on catalog_sales  (cost=0.00..43433.55 rows=3203 width=14) (actual time=0.014..29.971 rows=3530 loops=2)
+                                                  Filter: (cs_bill_hdemo_sk IS NULL)
+                                                  Rows Removed by Filter: 717244
+                                                  Buffers: shared hit=224 read=37203
+                                            ->  Memoize  (cost=0.30..1.16 rows=1 width=12) (actual time=0.000..0.000 rows=1 loops=7060)
+                                                  Cache Key: catalog_sales.cs_sold_date_sk
+                                                  Cache Mode: logical
+                                                  Hits: 2618  Misses: 927  Evictions: 0  Overflows: 0  Memory Usage: 102kB
+                                                  Buffers: shared hit=5536
+                                                  Worker 0:  Hits: 2595  Misses: 920  Evictions: 0  Overflows: 0  Memory Usage: 101kB
+                                                  ->  Index Scan using date_dim_pkey on date_dim date_dim_1  (cost=0.29..1.15 rows=1 width=12) (actual time=0.001..0.001 rows=1 loops=1847)
+                                                        Index Cond: (d_date_sk = catalog_sales.cs_sold_date_sk)
+                                                        Buffers: shared hit=5536
+                                      ->  Parallel Hash  (cost=1343.88..1343.88 rows=10588 width=55) (actual time=9.427..9.427 rows=9000 loops=2)
+                                            Buckets: 32768  Batches: 1  Memory Usage: 1824kB
+                                            Buffers: shared hit=1238
+                                            ->  Parallel Seq Scan on item item_1  (cost=0.00..1343.88 rows=10588 width=55) (actual time=6.851..8.476 rows=9000 loops=2)
+                                                  Buffers: shared hit=1238
+                                ->  Nested Loop  (cost=0.58..22531.00 rows=60 width=129) (actual time=0.281..26.620 rows=76 loops=1)
+                                      Buffers: shared hit=925 read=18579
+                                      ->  Nested Loop  (cost=0.29..22105.73 rows=60 width=61) (actual time=0.162..26.475 rows=167 loops=1)
+                                            Buffers: shared hit=697 read=18579
+                                            ->  Parallel Seq Scan on web_sales  (cost=0.00..21772.43 rows=60 width=14) (actual time=0.150..25.776 rows=167 loops=1)
+                                                  Filter: (ws_bill_customer_sk IS NULL)
+                                                  Rows Removed by Filter: 719217
+                                                  Buffers: shared hit=196 read=18579
+                                            ->  Index Scan using item_pkey on item item_2  (cost=0.29..5.55 rows=1 width=55) (actual time=0.004..0.004 rows=1 loops=167)
+                                                  Index Cond: (i_item_sk = web_sales.ws_item_sk)
+                                                  Buffers: shared hit=501
+                                      ->  Index Scan using date_dim_pkey on date_dim date_dim_2  (cost=0.29..7.09 rows=1 width=12) (actual time=0.001..0.001 rows=0 loops=167)
+                                            Index Cond: (d_date_sk = web_sales.ws_sold_date_sk)
+                                            Buffers: shared hit=228
+Planning:
+  Buffers: shared hit=286
+Planning Time: 0.495 ms
+JIT:
+  Functions: 181
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 3.282 ms, Inlining 0.000 ms, Optimization 1.850 ms, Emission 39.978 ms, Total 45.110 ms
+Execution Time: 125.939 ms

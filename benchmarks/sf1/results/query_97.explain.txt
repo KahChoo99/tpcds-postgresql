@@ -1,0 +1,71 @@
+Limit  (cost=120913.03..120913.04 rows=1 width=24) (actual time=396.366..397.682 rows=1 loops=1)
+  Buffers: shared hit=6240 read=86104, temp read=1844 written=1853
+  ->  Aggregate  (cost=120913.03..120913.04 rows=1 width=24) (actual time=388.910..390.226 rows=1 loops=1)
+        Buffers: shared hit=6240 read=86104, temp read=1844 written=1853
+        ->  Merge Full Join  (cost=118621.58..120814.40 rows=13151 width=8) (actual time=182.513..357.066 rows=831099 loops=1)
+              Merge Cond: ((store_sales.ss_customer_sk = catalog_sales.cs_bill_customer_sk) AND (store_sales.ss_item_sk = catalog_sales.cs_item_sk))
+              Buffers: shared hit=6240 read=86104, temp read=1844 written=1853
+              ->  Group  (cost=70355.33..71716.28 rows=13151 width=8) (actual time=117.160..202.222 rows=544665 loops=1)
+                    Group Key: store_sales.ss_customer_sk, store_sales.ss_item_sk
+                    Buffers: shared hit=4688 read=48656, temp read=1211 written=1217
+                    ->  Gather Merge  (cost=70355.33..71661.48 rows=10960 width=8) (actual time=117.159..169.424 rows=548023 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=4688 read=48656, temp read=1211 written=1217
+                          ->  Group  (cost=69355.30..69396.40 rows=5480 width=8) (actual time=111.689..131.947 rows=182674 loops=3)
+                                Group Key: store_sales.ss_customer_sk, store_sales.ss_item_sk
+                                Buffers: shared hit=4688 read=48656, temp read=1211 written=1217
+                                ->  Sort  (cost=69355.30..69369.00 rows=5480 width=8) (actual time=111.678..119.294 rows=183547 loops=3)
+                                      Sort Key: store_sales.ss_customer_sk, store_sales.ss_item_sk
+                                      Sort Method: external merge  Disk: 3392kB
+                                      Buffers: shared hit=4688 read=48656, temp read=1211 written=1217
+                                      Worker 0:  Sort Method: external merge  Disk: 3200kB
+                                      Worker 1:  Sort Method: external merge  Disk: 3096kB
+                                      ->  Parallel Hash Join  (cost=2071.11..69014.99 rows=5480 width=8) (actual time=2.865..87.246 rows=183547 loops=3)
+                                            Hash Cond: (store_sales.ss_sold_date_sk = date_dim.d_date_sk)
+                                            Buffers: shared hit=4576 read=48656
+                                            ->  Parallel Seq Scan on store_sales  (cost=0.00..63793.35 rows=1200135 width=12) (actual time=0.011..40.992 rows=960135 loops=3)
+                                                  Buffers: shared hit=3136 read=48656
+                                            ->  Parallel Hash  (cost=2068.55..2068.55 rows=205 width=4) (actual time=0.948..0.949 rows=122 loops=3)
+                                                  Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                  Buffers: shared hit=1424
+                                                  ->  Parallel Seq Scan on date_dim  (cost=0.00..2068.55 rows=205 width=4) (actual time=1.457..2.812 rows=365 loops=1)
+                                                        Filter: ((d_month_seq >= 1202) AND (d_month_seq <= 1213))
+                                                        Rows Removed by Filter: 72684
+                                                        Buffers: shared hit=1424
+              ->  Group  (cost=48266.26..48975.54 rows=6855 width=8) (actual time=65.346..108.011 rows=286586 loops=1)
+                    Group Key: catalog_sales.cs_bill_customer_sk, catalog_sales.cs_item_sk
+                    Buffers: shared hit=1552 read=37448, temp read=633 written=636
+                    ->  Gather Merge  (cost=48266.26..48946.98 rows=5712 width=8) (actual time=65.344..90.521 rows=286625 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=1552 read=37448, temp read=633 written=636
+                          ->  Group  (cost=47266.23..47287.65 rows=2856 width=8) (actual time=60.260..70.477 rows=95542 loops=3)
+                                Group Key: catalog_sales.cs_bill_customer_sk, catalog_sales.cs_item_sk
+                                Buffers: shared hit=1552 read=37448, temp read=633 written=636
+                                ->  Sort  (cost=47266.23..47273.37 rows=2856 width=8) (actual time=60.252..63.834 rows=95547 loops=3)
+                                      Sort Key: catalog_sales.cs_bill_customer_sk, catalog_sales.cs_item_sk
+                                      Sort Method: external merge  Disk: 1624kB
+                                      Buffers: shared hit=1552 read=37448, temp read=633 written=636
+                                      Worker 0:  Sort Method: external merge  Disk: 1736kB
+                                      Worker 1:  Sort Method: external merge  Disk: 1704kB
+                                      ->  Parallel Hash Join  (cost=2071.11..47102.30 rows=2856 width=8) (actual time=18.855..47.716 rows=95547 loops=3)
+                                            Hash Cond: (catalog_sales.cs_sold_date_sk = date_dim_1.d_date_sk)
+                                            Buffers: shared hit=1440 read=37448
+                                            ->  Parallel Seq Scan on catalog_sales  (cost=0.00..43454.42 rows=600642 width=12) (actual time=0.008..22.871 rows=480516 loops=3)
+                                                  Buffers: shared read=37448
+                                            ->  Parallel Hash  (cost=2068.55..2068.55 rows=205 width=4) (actual time=0.742..0.743 rows=122 loops=3)
+                                                  Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                  Buffers: shared hit=1424
+                                                  ->  Parallel Seq Scan on date_dim date_dim_1  (cost=0.00..2068.55 rows=205 width=4) (actual time=1.133..2.195 rows=365 loops=1)
+                                                        Filter: ((d_month_seq >= 1202) AND (d_month_seq <= 1213))
+                                                        Rows Removed by Filter: 72684
+                                                        Buffers: shared hit=1424
+Planning:
+  Buffers: shared hit=158 read=4
+Planning Time: 0.269 ms
+JIT:
+  Functions: 102
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 1.503 ms, Inlining 0.000 ms, Optimization 0.816 ms, Emission 19.005 ms, Total 21.323 ms
+Execution Time: 404.286 ms

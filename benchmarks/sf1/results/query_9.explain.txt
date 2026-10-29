@@ -1,0 +1,182 @@
+Seq Scan on reason  (cost=1070513.72..1070516.67 rows=1 width=160) (actual time=1097.617..1099.831 rows=1 loops=1)
+  Filter: (r_reason_sk = 1)
+  Rows Removed by Filter: 74
+  Buffers: shared hit=4369 read=513553
+  InitPlan 1 (returns $1)
+    ->  Finalize Aggregate  (cost=71374.70..71374.71 rows=1 width=8) (actual time=69.107..69.147 rows=1 loops=1)
+          Buffers: shared hit=3 read=51789
+          ->  Gather  (cost=71374.49..71374.70 rows=2 width=8) (actual time=69.045..69.141 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=3 read=51789
+                ->  Partial Aggregate  (cost=70374.49..70374.50 rows=1 width=8) (actual time=63.116..63.116 rows=1 loops=3)
+                      Buffers: shared hit=3 read=51789
+                      ->  Parallel Seq Scan on store_sales  (cost=0.00..69794.02 rows=232186 width=0) (actual time=24.283..59.190 rows=183334 loops=3)
+                            Filter: ((ss_quantity >= 1) AND (ss_quantity <= 20))
+                            Rows Removed by Filter: 776800
+                            Buffers: shared hit=3 read=51789
+  InitPlan 2 (returns $3)
+    ->  Finalize Aggregate  (cost=71374.71..71374.72 rows=1 width=32) (actual time=84.490..84.509 rows=1 loops=1)
+          Buffers: shared hit=100 read=51692
+          ->  Gather  (cost=71374.49..71374.70 rows=2 width=32) (actual time=84.433..84.500 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=100 read=51692
+                ->  Partial Aggregate  (cost=70374.49..70374.50 rows=1 width=32) (actual time=79.507..79.507 rows=1 loops=3)
+                      Buffers: shared hit=100 read=51692
+                      ->  Parallel Seq Scan on store_sales store_sales_1  (cost=0.00..69794.02 rows=232186 width=7) (actual time=34.653..69.427 rows=183334 loops=3)
+                            Filter: ((ss_quantity >= 1) AND (ss_quantity <= 20))
+                            Rows Removed by Filter: 776800
+                            Buffers: shared hit=100 read=51692
+  InitPlan 3 (returns $5)
+    ->  Finalize Aggregate  (cost=71374.71..71374.72 rows=1 width=32) (never executed)
+          ->  Gather  (cost=71374.49..71374.70 rows=2 width=32) (never executed)
+                Workers Planned: 2
+                Workers Launched: 0
+                ->  Partial Aggregate  (cost=70374.49..70374.50 rows=1 width=32) (never executed)
+                      ->  Parallel Seq Scan on store_sales store_sales_2  (cost=0.00..69794.02 rows=232186 width=6) (never executed)
+                            Filter: ((ss_quantity >= 1) AND (ss_quantity <= 20))
+  InitPlan 4 (returns $7)
+    ->  Finalize Aggregate  (cost=71360.20..71360.21 rows=1 width=8) (actual time=66.747..66.767 rows=1 loops=1)
+          Buffers: shared hit=196 read=51596
+          ->  Gather  (cost=71359.99..71360.20 rows=2 width=8) (actual time=66.684..66.760 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=196 read=51596
+                ->  Partial Aggregate  (cost=70359.99..70360.00 rows=1 width=8) (actual time=61.850..61.850 rows=1 loops=3)
+                      Buffers: shared hit=196 read=51596
+                      ->  Parallel Seq Scan on store_sales store_sales_3  (cost=0.00..69794.02 rows=226385 width=0) (actual time=21.410..57.756 rows=183134 loops=3)
+                            Filter: ((ss_quantity >= 21) AND (ss_quantity <= 40))
+                            Rows Removed by Filter: 777001
+                            Buffers: shared hit=196 read=51596
+  InitPlan 5 (returns $9)
+    ->  Finalize Aggregate  (cost=71360.21..71360.22 rows=1 width=32) (actual time=83.908..83.925 rows=1 loops=1)
+          Buffers: shared hit=292 read=51500
+          ->  Gather  (cost=71359.99..71360.20 rows=2 width=32) (actual time=83.844..83.908 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=292 read=51500
+                ->  Partial Aggregate  (cost=70359.99..70360.00 rows=1 width=32) (actual time=79.015..79.015 rows=1 loops=3)
+                      Buffers: shared hit=292 read=51500
+                      ->  Parallel Seq Scan on store_sales store_sales_4  (cost=0.00..69794.02 rows=226385 width=7) (actual time=32.643..69.345 rows=183134 loops=3)
+                            Filter: ((ss_quantity >= 21) AND (ss_quantity <= 40))
+                            Rows Removed by Filter: 777001
+                            Buffers: shared hit=292 read=51500
+  InitPlan 6 (returns $11)
+    ->  Finalize Aggregate  (cost=71360.21..71360.22 rows=1 width=32) (never executed)
+          ->  Gather  (cost=71359.99..71360.20 rows=2 width=32) (never executed)
+                Workers Planned: 2
+                Workers Launched: 0
+                ->  Partial Aggregate  (cost=70359.99..70360.00 rows=1 width=32) (never executed)
+                      ->  Parallel Seq Scan on store_sales store_sales_5  (cost=0.00..69794.02 rows=226385 width=6) (never executed)
+                            Filter: ((ss_quantity >= 21) AND (ss_quantity <= 40))
+  InitPlan 7 (returns $13)
+    ->  Finalize Aggregate  (cost=71365.10..71365.11 rows=1 width=8) (actual time=69.041..69.059 rows=1 loops=1)
+          Buffers: shared hit=389 read=51403
+          ->  Gather  (cost=71364.89..71365.10 rows=2 width=8) (actual time=68.980..69.053 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=389 read=51403
+                ->  Partial Aggregate  (cost=70364.89..70364.90 rows=1 width=8) (actual time=64.158..64.159 rows=1 loops=3)
+                      Buffers: shared hit=389 read=51403
+                      ->  Parallel Seq Scan on store_sales store_sales_6  (cost=0.00..69794.02 rows=228346 width=0) (actual time=22.368..60.171 rows=183217 loops=3)
+                            Filter: ((ss_quantity >= 41) AND (ss_quantity <= 60))
+                            Rows Removed by Filter: 776918
+                            Buffers: shared hit=389 read=51403
+  InitPlan 8 (returns $15)
+    ->  Finalize Aggregate  (cost=71365.11..71365.12 rows=1 width=32) (actual time=84.594..84.612 rows=1 loops=1)
+          Buffers: shared hit=485 read=51307
+          ->  Gather  (cost=71364.89..71365.10 rows=2 width=32) (actual time=84.546..84.603 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=485 read=51307
+                ->  Partial Aggregate  (cost=70364.89..70364.90 rows=1 width=32) (actual time=79.670..79.671 rows=1 loops=3)
+                      Buffers: shared hit=485 read=51307
+                      ->  Parallel Seq Scan on store_sales store_sales_7  (cost=0.00..69794.02 rows=228346 width=7) (actual time=32.750..70.559 rows=183217 loops=3)
+                            Filter: ((ss_quantity >= 41) AND (ss_quantity <= 60))
+                            Rows Removed by Filter: 776918
+                            Buffers: shared hit=485 read=51307
+  InitPlan 9 (returns $17)
+    ->  Finalize Aggregate  (cost=71365.11..71365.12 rows=1 width=32) (never executed)
+          ->  Gather  (cost=71364.89..71365.10 rows=2 width=32) (never executed)
+                Workers Planned: 2
+                Workers Launched: 0
+                ->  Partial Aggregate  (cost=70364.89..70364.90 rows=1 width=32) (never executed)
+                      ->  Parallel Seq Scan on store_sales store_sales_8  (cost=0.00..69794.02 rows=228346 width=6) (never executed)
+                            Filter: ((ss_quantity >= 41) AND (ss_quantity <= 60))
+  InitPlan 10 (returns $19)
+    ->  Finalize Aggregate  (cost=71366.40..71366.41 rows=1 width=8) (actual time=67.852..67.870 rows=1 loops=1)
+          Buffers: shared hit=582 read=51210
+          ->  Gather  (cost=71366.19..71366.40 rows=2 width=8) (actual time=67.791..67.861 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=582 read=51210
+                ->  Partial Aggregate  (cost=70366.19..70366.20 rows=1 width=8) (actual time=63.026..63.026 rows=1 loops=3)
+                      Buffers: shared hit=582 read=51210
+                      ->  Parallel Seq Scan on store_sales store_sales_9  (cost=0.00..69794.02 rows=228866 width=0) (actual time=21.286..58.943 rows=183522 loops=3)
+                            Filter: ((ss_quantity >= 61) AND (ss_quantity <= 80))
+                            Rows Removed by Filter: 776613
+                            Buffers: shared hit=582 read=51210
+  InitPlan 11 (returns $21)
+    ->  Finalize Aggregate  (cost=71366.41..71366.42 rows=1 width=32) (actual time=83.943..83.960 rows=1 loops=1)
+          Buffers: shared hit=678 read=51114
+          ->  Gather  (cost=71366.19..71366.40 rows=2 width=32) (actual time=83.889..83.951 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=678 read=51114
+                ->  Partial Aggregate  (cost=70366.19..70366.20 rows=1 width=32) (actual time=79.074..79.075 rows=1 loops=3)
+                      Buffers: shared hit=678 read=51114
+                      ->  Parallel Seq Scan on store_sales store_sales_10  (cost=0.00..69794.02 rows=228866 width=7) (actual time=32.833..69.960 rows=183522 loops=3)
+                            Filter: ((ss_quantity >= 61) AND (ss_quantity <= 80))
+                            Rows Removed by Filter: 776613
+                            Buffers: shared hit=678 read=51114
+  InitPlan 12 (returns $23)
+    ->  Finalize Aggregate  (cost=71366.41..71366.42 rows=1 width=32) (never executed)
+          ->  Gather  (cost=71366.19..71366.40 rows=2 width=32) (never executed)
+                Workers Planned: 2
+                Workers Launched: 0
+                ->  Partial Aggregate  (cost=70366.19..70366.20 rows=1 width=32) (never executed)
+                      ->  Parallel Seq Scan on store_sales store_sales_11  (cost=0.00..69794.02 rows=228866 width=6) (never executed)
+                            Filter: ((ss_quantity >= 61) AND (ss_quantity <= 80))
+  InitPlan 13 (returns $25)
+    ->  Finalize Aggregate  (cost=71371.40..71371.41 rows=1 width=8) (actual time=65.356..65.374 rows=1 loops=1)
+          Buffers: shared hit=774 read=51018
+          ->  Gather  (cost=71371.19..71371.40 rows=2 width=8) (actual time=65.235..65.354 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=774 read=51018
+                ->  Partial Aggregate  (cost=70371.19..70371.20 rows=1 width=8) (actual time=60.383..60.384 rows=1 loops=3)
+                      Buffers: shared hit=774 read=51018
+                      ->  Parallel Seq Scan on store_sales store_sales_12  (cost=0.00..69794.02 rows=230866 width=0) (actual time=21.552..56.422 rows=183596 loops=3)
+                            Filter: ((ss_quantity >= 81) AND (ss_quantity <= 100))
+                            Rows Removed by Filter: 776539
+                            Buffers: shared hit=774 read=51018
+  InitPlan 14 (returns $27)
+    ->  Finalize Aggregate  (cost=71371.41..71371.42 rows=1 width=32) (actual time=82.737..84.753 rows=1 loops=1)
+          Buffers: shared hit=870 read=50922
+          ->  Gather  (cost=71371.19..71371.40 rows=2 width=32) (actual time=82.680..84.745 rows=3 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=870 read=50922
+                ->  Partial Aggregate  (cost=70371.19..70371.20 rows=1 width=32) (actual time=77.409..77.409 rows=1 loops=3)
+                      Buffers: shared hit=870 read=50922
+                      ->  Parallel Seq Scan on store_sales store_sales_13  (cost=0.00..69794.02 rows=230866 width=7) (actual time=32.934..67.428 rows=183596 loops=3)
+                            Filter: ((ss_quantity >= 81) AND (ss_quantity <= 100))
+                            Rows Removed by Filter: 776539
+                            Buffers: shared hit=870 read=50922
+  InitPlan 15 (returns $29)
+    ->  Finalize Aggregate  (cost=71371.41..71371.42 rows=1 width=32) (never executed)
+          ->  Gather  (cost=71371.19..71371.40 rows=2 width=32) (never executed)
+                Workers Planned: 2
+                Workers Launched: 0
+                ->  Partial Aggregate  (cost=70371.19..70371.20 rows=1 width=32) (never executed)
+                      ->  Parallel Seq Scan on store_sales store_sales_14  (cost=0.00..69794.02 rows=230866 width=6) (never executed)
+                            Filter: ((ss_quantity >= 81) AND (ss_quantity <= 100))
+Planning:
+  Buffers: shared hit=99 read=20
+Planning Time: 0.678 ms
+JIT:
+  Functions: 193
+  Options: Inlining true, Optimization true, Expressions true, Deforming true
+  Timing: Generation 5.402 ms, Inlining 494.657 ms, Optimization 368.177 ms, Emission 306.886 ms, Total 1175.123 ms
+Execution Time: 1107.515 ms

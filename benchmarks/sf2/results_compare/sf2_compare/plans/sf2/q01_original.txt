@@ -1,0 +1,31 @@
+-- statement 1
+Limit  (cost=186311.54..186311.79 rows=100 width=17)
+  CTE customer_total_return
+    ->  GroupAggregate  (cost=14966.18..15346.66 rows=2751 width=40)
+          Group Key: store_returns.sr_customer_sk, store_returns.sr_store_sk
+          ->  Gather Merge  (cost=14966.18..15291.64 rows=2751 width=14)
+                Workers Planned: 3
+                ->  Sort  (cost=13966.14..13968.35 rows=887 width=14)
+                      Sort Key: store_returns.sr_customer_sk, store_returns.sr_store_sk
+                      ->  Parallel Hash Join  (cost=1963.79..13922.70 rows=887 width=14)
+                            Hash Cond: (store_returns.sr_returned_date_sk = date_dim.d_date_sk)
+                            ->  Parallel Seq Scan on store_returns  (cost=0.00..11471.76 rows=185576 width=18)
+                            ->  Parallel Hash  (cost=1961.12..1961.12 rows=213 width=4)
+                                  ->  Parallel Seq Scan on date_dim  (cost=0.00..1961.12 rows=213 width=4)
+                                        Filter: (d_year = 1998)
+  ->  Sort  (cost=170964.88..170965.13 rows=101 width=17)
+        Sort Key: customer.c_customer_id
+        ->  Nested Loop  (cost=0.29..170961.52 rows=101 width=17)
+              ->  Nested Loop  (cost=0.00..170781.90 rows=101 width=4)
+                    Join Filter: (store.s_store_sk = ctr1.ctr_store_sk)
+                    ->  CTE Scan on customer_total_return ctr1  (cost=0.00..170479.47 rows=917 width=8)
+                          Filter: (ctr_total_return > (SubPlan 2))
+                          SubPlan 2
+                            ->  Aggregate  (cost=61.93..61.95 rows=1 width=32)
+                                  ->  CTE Scan on customer_total_return ctr2  (cost=0.00..61.90 rows=14 width=32)
+                                        Filter: (ctr1.ctr_store_sk = ctr_store_sk)
+                    ->  Materialize  (cost=0.00..1.39 rows=22 width=4)
+                          ->  Seq Scan on store  (cost=0.00..1.27 rows=22 width=4)
+                                Filter: (s_state = 'TN'::bpchar)
+              ->  Index Scan using customer_pkey on customer  (cost=0.29..1.78 rows=1 width=21)
+                    Index Cond: (c_customer_sk = ctr1.ctr_customer_sk)

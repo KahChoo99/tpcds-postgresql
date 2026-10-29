@@ -1,0 +1,81 @@
+SET
+Sort  (cost=118950.57..118950.60 rows=13 width=228) (actual time=305.327..306.080 rows=2520 loops=1)
+  Sort Key: wswscs.d_week_seq
+  Sort Method: quicksort  Memory: 275kB
+  Buffers: shared hit=5989 read=54442
+  CTE wswscs
+    ->  Finalize GroupAggregate  (cost=110191.52..113694.76 rows=10431 width=228) (actual time=297.950..299.306 rows=263 loops=1)
+          Group Key: date_dim_2.d_week_seq
+          Buffers: shared hit=3179 read=54442
+          ->  Gather Merge  (cost=110191.52..112625.59 rows=20862 width=228) (actual time=297.939..298.735 rows=789 loops=1)
+                Workers Planned: 2
+                Workers Launched: 2
+                Buffers: shared hit=3179 read=54442
+                ->  Sort  (cost=109191.49..109217.57 rows=10431 width=228) (actual time=293.103..293.115 rows=263 loops=3)
+                      Sort Key: date_dim_2.d_week_seq
+                      Sort Method: quicksort  Memory: 154kB
+                      Buffers: shared hit=3179 read=54442
+                      Worker 0:  Sort Method: quicksort  Memory: 154kB
+                      Worker 1:  Sort Method: quicksort  Memory: 150kB
+                      ->  Partial HashAggregate  (cost=108208.44..108495.30 rows=10431 width=228) (actual time=292.866..293.053 rows=263 loops=3)
+                            Group Key: date_dim_2.d_week_seq
+                            Batches: 1  Memory Usage: 1425kB
+                            Buffers: shared hit=3165 read=54442
+                            Worker 0:  Batches: 1  Memory Usage: 1425kB
+                            Worker 1:  Batches: 1  Memory Usage: 1425kB
+                            ->  Parallel Hash Join  (cost=2371.83..74443.48 rows=900399 width=20) (actual time=13.460..181.753 rows=717854 loops=3)
+                                  Hash Cond: (catalog_sales.cs_sold_date_sk = date_dim_2.d_date_sk)
+                                  Buffers: shared hit=3165 read=54442
+                                  ->  Parallel Append  (cost=0.00..69707.98 rows=900398 width=10) (actual time=0.017..110.241 rows=720311 loops=3)
+                                        Buffers: shared hit=1760 read=54442
+                                        ->  Parallel Seq Scan on catalog_sales  (cost=0.00..43433.55 rows=600655 width=10) (actual time=0.017..56.771 rows=480516 loops=3)
+                                              Buffers: shared hit=768 read=36659
+                                        ->  Parallel Seq Scan on web_sales  (cost=0.00..21772.43 rows=299743 width=10) (actual time=0.015..41.112 rows=359692 loops=2)
+                                              Buffers: shared hit=992 read=17783
+                                  ->  Parallel Hash  (cost=1834.70..1834.70 rows=42970 width=18) (actual time=13.256..13.257 rows=24350 loops=3)
+                                        Buckets: 131072  Batches: 1  Memory Usage: 5056kB
+                                        Buffers: shared hit=1405
+                                        ->  Parallel Seq Scan on date_dim date_dim_2  (cost=0.00..1834.70 rows=42970 width=18) (actual time=8.580..10.612 rows=24350 loops=3)
+                                              Buffers: shared hit=1405
+  ->  Hash Join  (cost=5007.24..5255.56 rows=13 width=228) (actual time=303.795..305.121 rows=2520 loops=1)
+        Hash Cond: (wswscs.d_week_seq = date_dim.d_week_seq)
+        Buffers: shared hit=3915 read=18219
+        ->  CTE Scan on wswscs  (cost=0.00..208.62 rows=10431 width=228) (actual time=297.952..297.962 rows=263 loops=1)
+              Buffers: shared hit=1105 read=18219
+        ->  Hash  (cost=5007.08..5007.08 rows=13 width=232) (actual time=5.823..5.824 rows=2520 loops=1)
+              Buckets: 4096 (originally 1024)  Batches: 1 (originally 1)  Memory Usage: 288kB
+              Buffers: shared hit=2810
+              ->  Merge Join  (cost=5001.47..5007.08 rows=13 width=232) (actual time=5.369..5.591 rows=2520 loops=1)
+                    Merge Cond: (((wswscs_1.d_week_seq - 53)) = date_dim.d_week_seq)
+                    Buffers: shared hit=2810
+                    ->  Sort  (cost=2667.83..2668.74 rows=365 width=228) (actual time=3.272..3.280 rows=365 loops=1)
+                          Sort Key: ((wswscs_1.d_week_seq - 53))
+                          Sort Method: quicksort  Memory: 59kB
+                          Buffers: shared hit=1405
+                          ->  Hash Join  (cost=2322.68..2652.29 rows=365 width=228) (actual time=2.938..3.234 rows=365 loops=1)
+                                Hash Cond: (wswscs_1.d_week_seq = date_dim_1.d_week_seq)
+                                Buffers: shared hit=1405
+                                ->  CTE Scan on wswscs wswscs_1  (cost=0.00..208.62 rows=10431 width=228) (actual time=0.000..0.699 rows=263 loops=1)
+                                ->  Hash  (cost=2318.11..2318.11 rows=365 width=4) (actual time=2.489..2.489 rows=365 loops=1)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 21kB
+                                      Buffers: shared hit=1405
+                                      ->  Seq Scan on date_dim date_dim_1  (cost=0.00..2318.11 rows=365 width=4) (actual time=1.330..2.471 rows=365 loops=1)
+                                            Filter: (d_year = 2001)
+                                            Rows Removed by Filter: 72684
+                                            Buffers: shared hit=1405
+                    ->  Sort  (cost=2333.65..2334.56 rows=365 width=4) (actual time=2.090..2.144 rows=2521 loops=1)
+                          Sort Key: date_dim.d_week_seq
+                          Sort Method: quicksort  Memory: 25kB
+                          Buffers: shared hit=1405
+                          ->  Seq Scan on date_dim  (cost=0.00..2318.11 rows=365 width=4) (actual time=1.045..2.079 rows=366 loops=1)
+                                Filter: (d_year = 2000)
+                                Rows Removed by Filter: 72683
+                                Buffers: shared hit=1405
+Planning:
+  Buffers: shared hit=147
+Planning Time: 0.333 ms
+JIT:
+  Functions: 83
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 1.985 ms, Inlining 0.000 ms, Optimization 1.097 ms, Emission 24.716 ms, Total 27.799 ms
+Execution Time: 313.113 ms
