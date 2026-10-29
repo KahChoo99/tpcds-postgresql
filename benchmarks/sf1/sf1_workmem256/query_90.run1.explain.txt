@@ -1,0 +1,87 @@
+SET
+Limit  (cost=48240.42..48240.42 rows=1 width=32) (actual time=49.378..50.700 rows=1 loops=1)
+  Buffers: shared hit=20372 read=26259
+  ->  Sort  (cost=48240.42..48240.42 rows=1 width=32) (actual time=49.377..50.699 rows=1 loops=1)
+        Sort Key: ((((count(*)))::numeric(15,4) / ((count(*)))::numeric(15,4)))
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=20372 read=26259
+        ->  Nested Loop  (cost=48240.36..48240.41 rows=1 width=32) (actual time=49.366..50.688 rows=1 loops=1)
+              Buffers: shared hit=20369 read=26259
+              ->  Finalize Aggregate  (cost=24120.18..24120.19 rows=1 width=8) (actual time=24.792..24.841 rows=1 loops=1)
+                    Buffers: shared hit=10023 read=13291
+                    ->  Gather  (cost=24119.96..24120.17 rows=2 width=8) (actual time=24.748..24.838 rows=3 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=10023 read=13291
+                          ->  Partial Aggregate  (cost=23119.96..23119.97 rows=1 width=8) (actual time=23.896..23.898 rows=1 loops=3)
+                                Buffers: shared hit=10023 read=13291
+                                ->  Nested Loop  (cost=155.22..23119.75 rows=84 width=0) (actual time=1.105..23.893 rows=60 loops=3)
+                                      Buffers: shared hit=10023 read=13291
+                                      ->  Hash Join  (cost=154.93..22795.99 rows=999 width=4) (actual time=0.358..22.898 rows=479 loops=3)
+                                            Hash Cond: (web_sales.ws_ship_hdemo_sk = household_demographics.hd_demo_sk)
+                                            Buffers: shared hit=5938 read=13066
+                                            ->  Hash Join  (cost=2.92..22617.75 rows=9990 width=8) (actual time=0.035..22.392 rows=4684 loops=3)
+                                                  Hash Cond: (web_sales.ws_web_page_sk = web_page.wp_web_page_sk)
+                                                  Buffers: shared hit=5779 read=13066
+                                                  ->  Parallel Seq Scan on web_sales  (cost=0.00..21772.43 rows=299743 width=12) (actual time=0.006..11.786 rows=239795 loops=3)
+                                                        Buffers: shared hit=5711 read=13064
+                                                  ->  Hash  (cost=2.90..2.90 rows=2 width=4) (actual time=0.009..0.009 rows=1 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                        Buffers: shared hit=4 read=2
+                                                        ->  Seq Scan on web_page  (cost=0.00..2.90 rows=2 width=4) (actual time=0.005..0.008 rows=1 loops=3)
+                                                              Filter: ((wp_char_count >= 5000) AND (wp_char_count <= 5200))
+                                                              Rows Removed by Filter: 59
+                                                              Buffers: shared hit=4 read=2
+                                            ->  Hash  (cost=143.00..143.00 rows=720 width=4) (actual time=0.249..0.249 rows=720 loops=3)
+                                                  Buckets: 1024  Batches: 1  Memory Usage: 34kB
+                                                  Buffers: shared hit=159
+                                                  ->  Seq Scan on household_demographics  (cost=0.00..143.00 rows=720 width=4) (actual time=0.013..0.215 rows=720 loops=3)
+                                                        Filter: (hd_dep_count = 4)
+                                                        Rows Removed by Filter: 6480
+                                                        Buffers: shared hit=159
+                                      ->  Index Scan using time_dim_pkey on time_dim  (cost=0.29..0.32 rows=1 width=4) (actual time=0.002..0.002 rows=0 loops=1436)
+                                            Index Cond: (t_time_sk = web_sales.ws_sold_time_sk)
+                                            Filter: ((t_hour >= 12) AND (t_hour <= 13))
+                                            Rows Removed by Filter: 1
+                                            Buffers: shared hit=4085 read=225
+              ->  Finalize Aggregate  (cost=24120.18..24120.19 rows=1 width=8) (actual time=24.571..25.843 rows=1 loops=1)
+                    Buffers: shared hit=10346 read=12968
+                    ->  Gather  (cost=24119.97..24120.18 rows=2 width=8) (actual time=24.527..25.841 rows=3 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=10346 read=12968
+                          ->  Partial Aggregate  (cost=23119.97..23119.98 rows=1 width=8) (actual time=23.432..23.433 rows=1 loops=3)
+                                Buffers: shared hit=10346 read=12968
+                                ->  Nested Loop  (cost=155.22..23119.75 rows=86 width=0) (actual time=0.736..23.428 rows=38 loops=3)
+                                      Buffers: shared hit=10346 read=12968
+                                      ->  Hash Join  (cost=154.93..22795.99 rows=999 width=4) (actual time=0.311..22.665 rows=479 loops=3)
+                                            Hash Cond: (web_sales_1.ws_ship_hdemo_sk = household_demographics_1.hd_demo_sk)
+                                            Buffers: shared hit=6036 read=12968
+                                            ->  Hash Join  (cost=2.92..22617.75 rows=9990 width=8) (actual time=0.039..22.154 rows=4684 loops=3)
+                                                  Hash Cond: (web_sales_1.ws_web_page_sk = web_page_1.wp_web_page_sk)
+                                                  Buffers: shared hit=5877 read=12968
+                                                  ->  Parallel Seq Scan on web_sales web_sales_1  (cost=0.00..21772.43 rows=299743 width=12) (actual time=0.004..11.280 rows=239795 loops=3)
+                                                        Buffers: shared hit=5807 read=12968
+                                                  ->  Hash  (cost=2.90..2.90 rows=2 width=4) (actual time=0.007..0.008 rows=1 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                        Buffers: shared hit=6
+                                                        ->  Seq Scan on web_page web_page_1  (cost=0.00..2.90 rows=2 width=4) (actual time=0.004..0.006 rows=1 loops=3)
+                                                              Filter: ((wp_char_count >= 5000) AND (wp_char_count <= 5200))
+                                                              Rows Removed by Filter: 59
+                                                              Buffers: shared hit=6
+                                            ->  Hash  (cost=143.00..143.00 rows=720 width=4) (actual time=0.246..0.246 rows=720 loops=3)
+                                                  Buckets: 1024  Batches: 1  Memory Usage: 34kB
+                                                  Buffers: shared hit=159
+                                                  ->  Seq Scan on household_demographics household_demographics_1  (cost=0.00..143.00 rows=720 width=4) (actual time=0.014..0.211 rows=720 loops=3)
+                                                        Filter: (hd_dep_count = 4)
+                                                        Rows Removed by Filter: 6480
+                                                        Buffers: shared hit=159
+                                      ->  Index Scan using time_dim_pkey on time_dim time_dim_1  (cost=0.29..0.32 rows=1 width=4) (actual time=0.001..0.001 rows=0 loops=1436)
+                                            Index Cond: (t_time_sk = web_sales_1.ws_sold_time_sk)
+                                            Filter: ((t_hour >= 13) AND (t_hour <= 14))
+                                            Rows Removed by Filter: 1
+                                            Buffers: shared hit=4310
+Planning:
+  Buffers: shared hit=255 read=11
+Planning Time: 0.467 ms
+Execution Time: 50.774 ms

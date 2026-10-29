@@ -1,0 +1,35 @@
+-- statement 1
+Limit  (cost=7533.84..7533.85 rows=1 width=253)
+  ->  Sort  (cost=7533.84..7533.85 rows=1 width=253)
+        Sort Key: c.c_customer_id, c.c_salutation, c.c_first_name, c.c_last_name, c.c_preferred_cust_flag, c.c_birth_day, c.c_birth_month, c.c_birth_year, c.c_birth_country, c.c_login, c.c_email_address, c.c_last_review_date, r.total_return
+        ->  Nested Loop  (cost=6971.70..7533.83 rows=1 width=253)
+              ->  Nested Loop  (cost=6971.41..7465.35 rows=210 width=257)
+                    ->  Subquery Scan on r  (cost=6971.11..6991.62 rows=210 width=36)
+                          Filter: (r.total_return > (r.state_average_return * 1.2))
+                          ->  WindowAgg  (cost=6971.11..6982.16 rows=631 width=71)
+                                ->  Sort  (cost=6971.11..6972.69 rows=631 width=39)
+                                      Sort Key: customer_total_return.return_state
+                                      ->  Subquery Scan on customer_total_return  (cost=6880.08..6941.77 rows=631 width=39)
+                                            ->  Finalize GroupAggregate  (cost=6880.08..6941.77 rows=631 width=39)
+                                                  Group Key: wr.wr_returning_customer_sk, ca.ca_state
+                                                  ->  Gather Merge  (cost=6880.08..6930.17 rows=371 width=39)
+                                                        Workers Planned: 1
+                                                        ->  Partial GroupAggregate  (cost=5880.07..5888.42 rows=371 width=39)
+                                                              Group Key: wr.wr_returning_customer_sk, ca.ca_state
+                                                              ->  Sort  (cost=5880.07..5881.00 rows=371 width=13)
+                                                                    Sort Key: wr.wr_returning_customer_sk, ca.ca_state
+                                                                    ->  Nested Loop  (cost=1964.08..5864.24 rows=371 width=13)
+                                                                          ->  Parallel Hash Join  (cost=1963.79..5734.46 rows=401 width=14)
+                                                                                Hash Cond: (wr.wr_returned_date_sk = d.d_date_sk)
+                                                                                ->  Parallel Seq Scan on web_returns wr  (cost=0.00..3548.88 rows=84488 width=18)
+                                                                                ->  Parallel Hash  (cost=1961.12..1961.12 rows=213 width=4)
+                                                                                      ->  Parallel Seq Scan on date_dim d  (cost=0.00..1961.12 rows=213 width=4)
+                                                                                            Filter: (d_year = 2000)
+                                                                          ->  Index Scan using customer_address_pkey on customer_address ca  (cost=0.29..0.32 rows=1 width=7)
+                                                                                Index Cond: (ca_address_sk = wr.wr_returning_addr_sk)
+                                                                                Filter: (ca_state IS NOT NULL)
+                    ->  Index Scan using customer_pkey on customer c  (cost=0.29..2.26 rows=1 width=229)
+                          Index Cond: (c_customer_sk = r.customer_sk)
+              ->  Index Scan using customer_address_pkey on customer_address current_address  (cost=0.29..0.33 rows=1 width=4)
+                    Index Cond: (ca_address_sk = c.c_current_addr_sk)
+                    Filter: (ca_state = 'ME'::bpchar)

@@ -1,0 +1,169 @@
+Limit  (cost=37192.30..37192.41 rows=41 width=49) (actual time=191.362..191.959 rows=100 loops=1)
+  Buffers: shared hit=124242 read=179320
+  ->  Sort  (cost=37192.30..37192.41 rows=41 width=49) (actual time=191.361..191.955 rows=100 loops=1)
+        Sort Key: (sum((sum(store_sales.ss_ext_sales_price)))), item.i_item_id
+        Sort Method: top-N heapsort  Memory: 36kB
+        Buffers: shared hit=124242 read=179320
+        ->  GroupAggregate  (cost=37185.95..37191.21 rows=41 width=49) (actual time=190.771..191.878 rows=404 loops=1)
+              Group Key: item.i_item_id
+              Buffers: shared hit=124239 read=179320
+              ->  Merge Append  (cost=37185.95..37190.49 rows=41 width=49) (actual time=190.766..191.791 rows=651 loops=1)
+                    Sort Key: item.i_item_id
+                    Buffers: shared hit=124239 read=179320
+                    ->  Finalize GroupAggregate  (cost=16491.75..16494.00 rows=23 width=49) (actual time=106.568..106.833 rows=304 loops=1)
+                          Group Key: item.i_item_id
+                          Buffers: shared hit=48438 read=108894
+                          ->  Gather Merge  (cost=16491.75..16493.60 rows=14 width=49) (actual time=106.564..106.769 rows=304 loops=1)
+                                Workers Planned: 1
+                                Workers Launched: 1
+                                Buffers: shared hit=48438 read=108894
+                                ->  Partial GroupAggregate  (cost=15491.74..15492.02 rows=14 width=49) (actual time=105.754..105.802 rows=152 loops=2)
+                                      Group Key: item.i_item_id
+                                      Buffers: shared hit=48438 read=108894
+                                      ->  Sort  (cost=15491.74..15491.77 rows=14 width=23) (actual time=105.749..105.758 rows=256 loops=2)
+                                            Sort Key: item.i_item_id
+                                            Sort Method: quicksort  Memory: 35kB
+                                            Buffers: shared hit=48438 read=108894
+                                            Worker 0:  Sort Method: quicksort  Memory: 38kB
+                                            ->  Nested Loop  (cost=3437.48..15491.47 rows=14 width=23) (actual time=4.564..105.571 rows=256 loops=2)
+                                                  Buffers: shared hit=48431 read=108894
+                                                  ->  Parallel Hash Join  (cost=3437.19..15481.50 rows=32 width=27) (actual time=4.170..103.797 rows=610 loops=2)
+                                                        Hash Cond: (store_sales.ss_sold_date_sk = date_dim.d_date_sk)
+                                                        Buffers: shared hit=46231 read=107490
+                                                        ->  Nested Loop  (cost=1387.44..13200.80 rows=87977 width=31) (actual time=2.173..99.347 rows=73296 loops=2)
+                                                              Buffers: shared hit=44812 read=107490
+                                                              ->  Parallel Hash Semi Join  (cost=1387.01..2765.50 rows=550 width=21) (actual time=2.159..3.972 rows=534 loops=2)
+                                                                    Hash Cond: (item.i_item_id = item_1.i_item_id)
+                                                                    Buffers: shared hit=866 read=1622
+                                                                    ->  Parallel Seq Scan on item  (cost=0.00..1343.88 rows=10588 width=21) (actual time=0.001..1.088 rows=9000 loops=2)
+                                                                          Buffers: shared hit=130 read=1108
+                                                                    ->  Parallel Hash  (cost=1383.59..1383.59 rows=274 width=17) (actual time=2.137..2.137 rows=233 loops=2)
+                                                                          Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                          Buffers: shared hit=724 read=514
+                                                                          ->  Parallel Seq Scan on item item_1  (cost=0.00..1383.59 rows=274 width=17) (actual time=0.005..2.108 rows=233 loops=2)
+                                                                                Filter: (i_color = ANY ('{sienna,antique,blanched}'::bpchar[]))
+                                                                                Rows Removed by Filter: 8767
+                                                                                Buffers: shared hit=724 read=514
+                                                              ->  Index Scan using store_sales_pkey on store_sales  (cost=0.43..17.21 rows=176 width=18) (actual time=0.004..0.168 rows=137 loops=1067)
+                                                                    Index Cond: (ss_item_sk = item.i_item_sk)
+                                                                    Buffers: shared hit=43946 read=105868
+                                                        ->  Parallel Hash  (cost=2049.55..2049.55 rows=16 width=4) (actual time=1.793..1.794 rows=14 loops=2)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                              Buffers: shared hit=1405
+                                                              ->  Parallel Seq Scan on date_dim  (cost=0.00..2049.55 rows=16 width=4) (actual time=0.822..1.783 rows=14 loops=2)
+                                                                    Filter: ((d_year = 1998) AND (d_moy = 2))
+                                                                    Rows Removed by Filter: 36510
+                                                                    Buffers: shared hit=1405
+                                                  ->  Index Scan using customer_address_pkey on customer_address  (cost=0.29..0.31 rows=1 width=4) (actual time=0.003..0.003 rows=0 loops=1221)
+                                                        Index Cond: (ca_address_sk = store_sales.ss_addr_sk)
+                                                        Filter: (ca_gmt_offset = '-6'::numeric)
+                                                        Rows Removed by Filter: 1
+                                                        Buffers: shared hit=2200 read=1404
+                    ->  Finalize GroupAggregate  (cost=12284.61..12285.74 rows=12 width=49) (actual time=56.742..56.943 rows=213 loops=1)
+                          Group Key: item_2.i_item_id
+                          Buffers: shared hit=40790 read=51305
+                          ->  Gather Merge  (cost=12284.61..12285.54 rows=7 width=49) (actual time=56.739..56.897 rows=213 loops=1)
+                                Workers Planned: 1
+                                Workers Launched: 1
+                                Buffers: shared hit=40790 read=51305
+                                ->  Partial GroupAggregate  (cost=11284.60..11284.74 rows=7 width=49) (actual time=55.765..55.799 rows=106 loops=2)
+                                      Group Key: item_2.i_item_id
+                                      Buffers: shared hit=40790 read=51305
+                                      ->  Sort  (cost=11284.60..11284.62 rows=7 width=23) (actual time=55.759..55.765 rows=147 loops=2)
+                                            Sort Key: item_2.i_item_id
+                                            Sort Method: quicksort  Memory: 32kB
+                                            Buffers: shared hit=40790 read=51305
+                                            Worker 0:  Sort Method: quicksort  Memory: 31kB
+                                            ->  Nested Loop  (cost=1388.03..11284.50 rows=7 width=23) (actual time=2.142..55.667 rows=147 loops=2)
+                                                  Buffers: shared hit=40785 read=51303
+                                                  ->  Nested Loop  (cost=1387.74..11279.17 rows=17 width=27) (actual time=2.118..54.720 rows=348 loops=2)
+                                                        Buffers: shared hit=39400 read=50605
+                                                        ->  Nested Loop  (cost=1387.44..9593.53 rows=44030 width=31) (actual time=1.856..48.427 rows=36688 loops=2)
+                                                              Buffers: shared hit=28463 read=50561
+                                                              ->  Parallel Hash Semi Join  (cost=1387.01..2765.50 rows=550 width=21) (actual time=1.840..3.578 rows=534 loops=2)
+                                                                    Hash Cond: (item_2.i_item_id = item_3.i_item_id)
+                                                                    Buffers: shared hit=459 read=2029
+                                                                    ->  Parallel Seq Scan on item item_2  (cost=0.00..1343.88 rows=10588 width=21) (actual time=0.002..0.974 rows=9000 loops=2)
+                                                                          Buffers: shared hit=293 read=945
+                                                                    ->  Parallel Hash  (cost=1383.59..1383.59 rows=274 width=17) (actual time=1.745..1.745 rows=233 loops=2)
+                                                                          Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                          Buffers: shared hit=157 read=1081
+                                                                          ->  Parallel Seq Scan on item item_3  (cost=0.00..1383.59 rows=274 width=17) (actual time=0.005..1.713 rows=233 loops=2)
+                                                                                Filter: (i_color = ANY ('{sienna,antique,blanched}'::bpchar[]))
+                                                                                Rows Removed by Filter: 8767
+                                                                                Buffers: shared hit=157 read=1081
+                                                              ->  Index Scan using catalog_sales_pkey on catalog_sales  (cost=0.43..11.53 rows=88 width=18) (actual time=0.003..0.078 rows=69 loops=1067)
+                                                                    Index Cond: (cs_item_sk = item_2.i_item_sk)
+                                                                    Buffers: shared hit=28004 read=48532
+                                                        ->  Memoize  (cost=0.30..0.33 rows=1 width=4) (actual time=0.000..0.000 rows=0 loops=73375)
+                                                              Cache Key: catalog_sales.cs_sold_date_sk
+                                                              Cache Mode: logical
+                                                              Hits: 37639  Misses: 1831  Evictions: 0  Overflows: 0  Memory Usage: 123kB
+                                                              Buffers: shared hit=10937 read=44
+                                                              Worker 0:  Hits: 32074  Misses: 1831  Evictions: 0  Overflows: 0  Memory Usage: 123kB
+                                                              ->  Index Scan using date_dim_pkey on date_dim date_dim_1  (cost=0.29..0.32 rows=1 width=4) (actual time=0.001..0.001 rows=0 loops=3662)
+                                                                    Index Cond: (d_date_sk = catalog_sales.cs_sold_date_sk)
+                                                                    Filter: ((d_year = 1998) AND (d_moy = 2))
+                                                                    Rows Removed by Filter: 1
+                                                                    Buffers: shared hit=10937 read=44
+                                                  ->  Index Scan using customer_address_pkey on customer_address customer_address_1  (cost=0.29..0.31 rows=1 width=4) (actual time=0.003..0.003 rows=0 loops=696)
+                                                        Index Cond: (ca_address_sk = catalog_sales.cs_bill_addr_sk)
+                                                        Filter: (ca_gmt_offset = '-6'::numeric)
+                                                        Rows Removed by Filter: 1
+                                                        Buffers: shared hit=1385 read=698
+                    ->  Finalize GroupAggregate  (cost=8409.57..8410.20 rows=6 width=49) (actual time=27.454..27.906 rows=134 loops=1)
+                          Group Key: item_4.i_item_id
+                          Buffers: shared hit=35011 read=19121
+                          ->  Gather Merge  (cost=8409.57..8410.10 rows=4 width=49) (actual time=27.451..27.875 rows=134 loops=1)
+                                Workers Planned: 1
+                                Workers Launched: 1
+                                Buffers: shared hit=35011 read=19121
+                                ->  Partial GroupAggregate  (cost=7409.56..7409.64 rows=4 width=49) (actual time=26.520..26.543 rows=67 loops=2)
+                                      Group Key: item_4.i_item_id
+                                      Buffers: shared hit=35011 read=19121
+                                      ->  Sort  (cost=7409.56..7409.57 rows=4 width=23) (actual time=26.516..26.521 rows=83 loops=2)
+                                            Sort Key: item_4.i_item_id
+                                            Sort Method: quicksort  Memory: 29kB
+                                            Buffers: shared hit=35011 read=19121
+                                            Worker 0:  Sort Method: quicksort  Memory: 28kB
+                                            ->  Nested Loop  (cost=1388.03..7409.52 rows=4 width=23) (actual time=1.868..26.462 rows=83 loops=2)
+                                                  Buffers: shared hit=35006 read=19119
+                                                  ->  Nested Loop  (cost=1387.74..7406.98 rows=8 width=27) (actual time=1.850..26.031 rows=176 loops=2)
+                                                        Buffers: shared hit=34236 read=18829
+                                                        ->  Nested Loop  (cost=1387.44..6266.85 rows=21972 width=31) (actual time=1.764..22.183 rows=18254 loops=2)
+                                                              Buffers: shared hit=23353 read=18818
+                                                              ->  Parallel Hash Semi Join  (cost=1387.01..2765.50 rows=550 width=21) (actual time=1.749..3.399 rows=534 loops=2)
+                                                                    Hash Cond: (item_4.i_item_id = item_5.i_item_id)
+                                                                    Buffers: shared hit=1081 read=1407
+                                                                    ->  Parallel Seq Scan on item item_4  (cost=0.00..1343.88 rows=10588 width=21) (actual time=0.006..0.715 rows=9000 loops=2)
+                                                                          Buffers: shared hit=752 read=486
+                                                                    ->  Parallel Hash  (cost=1383.59..1383.59 rows=274 width=17) (actual time=1.649..1.650 rows=233 loops=2)
+                                                                          Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                          Buffers: shared hit=320 read=918
+                                                                          ->  Parallel Seq Scan on item item_5  (cost=0.00..1383.59 rows=274 width=17) (actual time=0.005..1.616 rows=233 loops=2)
+                                                                                Filter: (i_color = ANY ('{sienna,antique,blanched}'::bpchar[]))
+                                                                                Rows Removed by Filter: 8767
+                                                                                Buffers: shared hit=320 read=918
+                                                              ->  Index Scan using web_sales_pkey on web_sales  (cost=0.42..5.93 rows=44 width=18) (actual time=0.002..0.033 rows=34 loops=1067)
+                                                                    Index Cond: (ws_item_sk = item_4.i_item_sk)
+                                                                    Buffers: shared hit=22272 read=17411
+                                                        ->  Memoize  (cost=0.30..0.33 rows=1 width=4) (actual time=0.000..0.000 rows=0 loops=36507)
+                                                              Cache Key: web_sales.ws_sold_date_sk
+                                                              Cache Mode: logical
+                                                              Hits: 18613  Misses: 1821  Evictions: 0  Overflows: 0  Memory Usage: 122kB
+                                                              Buffers: shared hit=10883 read=11
+                                                              Worker 0:  Hits: 14261  Misses: 1812  Evictions: 0  Overflows: 0  Memory Usage: 122kB
+                                                              ->  Index Scan using date_dim_pkey on date_dim date_dim_2  (cost=0.29..0.32 rows=1 width=4) (actual time=0.001..0.001 rows=0 loops=3633)
+                                                                    Index Cond: (d_date_sk = web_sales.ws_sold_date_sk)
+                                                                    Filter: ((d_year = 1998) AND (d_moy = 2))
+                                                                    Rows Removed by Filter: 1
+                                                                    Buffers: shared hit=10883 read=11
+                                                  ->  Index Scan using customer_address_pkey on customer_address customer_address_2  (cost=0.29..0.32 rows=1 width=4) (actual time=0.002..0.002 rows=0 loops=353)
+                                                        Index Cond: (ca_address_sk = web_sales.ws_bill_addr_sk)
+                                                        Filter: (ca_gmt_offset = '-6'::numeric)
+                                                        Rows Removed by Filter: 1
+                                                        Buffers: shared hit=770 read=290
+Planning:
+  Buffers: shared hit=339 read=56
+Planning Time: 1.234 ms
+Execution Time: 192.155 ms

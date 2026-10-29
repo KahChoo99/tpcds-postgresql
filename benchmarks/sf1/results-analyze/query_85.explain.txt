@@ -1,0 +1,81 @@
+Limit  (cost=14683.97..14683.97 rows=1 width=229) (actual time=29.383..30.836 rows=0 loops=1)
+  Buffers: shared hit=35810 read=12654
+  ->  Sort  (cost=14683.97..14683.97 rows=1 width=229) (actual time=29.383..30.835 rows=0 loops=1)
+        Sort Key: (substr((reason.r_reason_desc)::text, 1, 20)), (avg(web_sales.ws_quantity)), (avg(web_returns.wr_refunded_cash)), (avg(web_returns.wr_fee))
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=35810 read=12654
+        ->  Finalize GroupAggregate  (cost=14683.78..14683.96 rows=1 width=229) (actual time=29.375..30.828 rows=0 loops=1)
+              Group Key: reason.r_reason_desc
+              Buffers: shared hit=35804 read=12654
+              ->  Gather Merge  (cost=14683.78..14683.92 rows=1 width=197) (actual time=29.374..30.827 rows=0 loops=1)
+                    Workers Planned: 1
+                    Workers Launched: 1
+                    Buffers: shared hit=35804 read=12654
+                    ->  Partial GroupAggregate  (cost=13683.77..13683.80 rows=1 width=197) (actual time=28.491..28.495 rows=0 loops=2)
+                          Group Key: reason.r_reason_desc
+                          Buffers: shared hit=35804 read=12654
+                          ->  Sort  (cost=13683.77..13683.77 rows=1 width=117) (actual time=28.491..28.494 rows=0 loops=2)
+                                Sort Key: reason.r_reason_desc
+                                Sort Method: quicksort  Memory: 25kB
+                                Buffers: shared hit=35804 read=12654
+                                Worker 0:  Sort Method: quicksort  Memory: 25kB
+                                ->  Nested Loop  (cost=1847.92..13683.76 rows=1 width=117) (actual time=28.481..28.484 rows=0 loops=2)
+                                      Buffers: shared hit=35797 read=12654
+                                      ->  Nested Loop  (cost=1847.62..13683.26 rows=1 width=121) (actual time=15.359..28.460 rows=2 loops=2)
+                                            Join Filter: ((cd1.cd_marital_status = cd2.cd_marital_status) AND (cd1.cd_education_status = cd2.cd_education_status) AND (((cd1.cd_marital_status = 'W'::bpchar) AND (cd1.cd_education_status = 'Primary'::bpchar) AND (web_sales.ws_sales_price >= 100.00) AND (web_sales.ws_sales_price <= 150.00)) OR ((cd1.cd_marital_status = 'S'::bpchar) AND (cd1.cd_education_status = 'Secondary'::bpchar) AND (web_sales.ws_sales_price >= 50.00) AND (web_sales.ws_sales_price <= 100.00)) OR ((cd1.cd_marital_status = 'M'::bpchar) AND (cd1.cd_education_status = '2 yr Degree'::bpchar) AND (web_sales.ws_sales_price >= 150.00) AND (web_sales.ws_sales_price <= 200.00))))
+                                            Rows Removed by Join Filter: 6
+                                            Buffers: shared hit=35784 read=12654
+                                            ->  Nested Loop  (cost=1847.20..13681.24 rows=1 width=154) (actual time=4.934..28.353 rows=111 loops=2)
+                                                  Buffers: shared hit=34896 read=12654
+                                                  ->  Nested Loop  (cost=1846.77..13679.29 rows=1 width=135) (actual time=4.920..27.720 rows=114 loops=2)
+                                                        Buffers: shared hit=34443 read=12218
+                                                        ->  Nested Loop  (cost=1846.63..13679.13 rows=1 width=139) (actual time=4.912..27.657 rows=114 loops=2)
+                                                              Join Filter: (((customer_address.ca_state = ANY ('{MT,AR,UT}'::bpchar[])) AND (web_sales.ws_net_profit >= '100'::numeric) AND (web_sales.ws_net_profit <= '200'::numeric)) OR ((customer_address.ca_state = ANY ('{ND,TN,OR}'::bpchar[])) AND (web_sales.ws_net_profit >= '150'::numeric) AND (web_sales.ws_net_profit <= '300'::numeric)) OR ((customer_address.ca_state = ANY ('{SD,CO,FL}'::bpchar[])) AND (web_sales.ws_net_profit >= '50'::numeric) AND (web_sales.ws_net_profit <= '250'::numeric)))
+                                                              Rows Removed by Join Filter: 64
+                                                              Buffers: shared hit=34213 read=12218
+                                                              ->  Hash Join  (cost=1846.20..3724.14 rows=5863 width=132) (actual time=4.545..10.335 rows=5500 loops=2)
+                                                                    Hash Cond: (web_returns.wr_reason_sk = reason.r_reason_sk)
+                                                                    Buffers: shared hit=1316 read=1118
+                                                                    ->  Parallel Hash Join  (cost=1842.52..3703.48 rows=6138 width=35) (actual time=4.521..9.825 rows=5640 loops=2)
+                                                                          Hash Cond: (web_returns.wr_refunded_addr_sk = customer_address.ca_address_sk)
+                                                                          Buffers: shared hit=1300 read=1116
+                                                                          ->  Parallel Seq Scan on web_returns  (cost=0.00..1750.14 rows=42214 width=36) (actual time=0.008..2.124 rows=35882 loops=2)
+                                                                                Buffers: shared hit=212 read=1116
+                                                                          ->  Parallel Hash  (cost=1786.53..1786.53 rows=4479 width=7) (actual time=4.425..4.425 rows=4084 loops=2)
+                                                                                Buckets: 8192  Batches: 1  Memory Usage: 416kB
+                                                                                Buffers: shared hit=1088
+                                                                                ->  Parallel Seq Scan on customer_address  (cost=0.00..1786.53 rows=4479 width=7) (actual time=0.005..4.140 rows=4084 loops=2)
+                                                                                      Filter: (((ca_country)::text = 'United States'::text) AND ((ca_state = ANY ('{MT,AR,UT}'::bpchar[])) OR (ca_state = ANY ('{ND,TN,OR}'::bpchar[])) OR (ca_state = ANY ('{SD,CO,FL}'::bpchar[]))))
+                                                                                      Rows Removed by Filter: 20916
+                                                                                      Buffers: shared hit=1088
+                                                                    ->  Hash  (cost=2.75..2.75 rows=75 width=105) (actual time=0.016..0.016 rows=75 loops=2)
+                                                                          Buckets: 1024  Batches: 1  Memory Usage: 19kB
+                                                                          Buffers: shared hit=2 read=2
+                                                                          ->  Seq Scan on reason  (cost=0.00..2.75 rows=75 width=105) (actual time=0.004..0.009 rows=75 loops=2)
+                                                                                Buffers: shared hit=2 read=2
+                                                              ->  Index Scan using web_sales_pkey on web_sales  (cost=0.42..1.66 rows=1 width=32) (actual time=0.003..0.003 rows=0 loops=10999)
+                                                                    Index Cond: ((ws_item_sk = web_returns.wr_item_sk) AND (ws_order_number = web_returns.wr_order_number))
+                                                                    Filter: ((((ws_sales_price >= 100.00) AND (ws_sales_price <= 150.00)) OR ((ws_sales_price >= 50.00) AND (ws_sales_price <= 100.00)) OR ((ws_sales_price >= 150.00) AND (ws_sales_price <= 200.00))) AND (((ws_net_profit >= '100'::numeric) AND (ws_net_profit <= '200'::numeric)) OR ((ws_net_profit >= '150'::numeric) AND (ws_net_profit <= '300'::numeric)) OR ((ws_net_profit >= '50'::numeric) AND (ws_net_profit <= '250'::numeric))))
+                                                                    Rows Removed by Filter: 1
+                                                                    Buffers: shared hit=32897 read=11100
+                                                        ->  Index Only Scan using web_page_pkey on web_page  (cost=0.14..0.16 rows=1 width=4) (actual time=0.000..0.000 rows=1 loops=228)
+                                                              Index Cond: (wp_web_page_sk = web_sales.ws_web_page_sk)
+                                                              Heap Fetches: 0
+                                                              Buffers: shared hit=230
+                                                  ->  Index Scan using customer_demographics_pkey on customer_demographics cd2  (cost=0.43..1.96 rows=1 width=27) (actual time=0.005..0.005 rows=1 loops=227)
+                                                        Index Cond: (cd_demo_sk = web_returns.wr_returning_cdemo_sk)
+                                                        Buffers: shared hit=453 read=436
+                                            ->  Index Scan using customer_demographics_pkey on customer_demographics cd1  (cost=0.43..1.97 rows=1 width=27) (actual time=0.001..0.001 rows=0 loops=222)
+                                                  Index Cond: (cd_demo_sk = web_returns.wr_refunded_cdemo_sk)
+                                                  Filter: (((cd_marital_status = 'W'::bpchar) AND (cd_education_status = 'Primary'::bpchar)) OR ((cd_marital_status = 'S'::bpchar) AND (cd_education_status = 'Secondary'::bpchar)) OR ((cd_marital_status = 'M'::bpchar) AND (cd_education_status = '2 yr Degree'::bpchar)))
+                                                  Rows Removed by Filter: 1
+                                                  Buffers: shared hit=888
+                                      ->  Index Scan using date_dim_pkey on date_dim  (cost=0.29..0.50 rows=1 width=4) (actual time=0.010..0.010 rows=0 loops=4)
+                                            Index Cond: (d_date_sk = web_sales.ws_sold_date_sk)
+                                            Filter: (d_year = 2002)
+                                            Rows Removed by Filter: 1
+                                            Buffers: shared hit=13
+Planning:
+  Buffers: shared hit=433 read=5
+Planning Time: 2.824 ms
+Execution Time: 30.930 ms

@@ -1,0 +1,51 @@
+Limit  (cost=25742.38..25742.62 rows=96 width=291) (actual time=28.578..28.696 rows=100 loops=1)
+  Buffers: shared hit=21145 read=19913
+  ->  Sort  (cost=25742.38..25742.62 rows=96 width=291) (actual time=28.577..28.692 rows=100 loops=1)
+        Sort Key: item.i_category, item.i_class, item.i_item_id, item.i_item_desc, ((((sum(web_sales.ws_ext_sales_price)) * '100'::numeric) / sum((sum(web_sales.ws_ext_sales_price))) OVER (?)))
+        Sort Method: top-N heapsort  Memory: 89kB
+        Buffers: shared hit=21145 read=19913
+        ->  WindowAgg  (cost=25737.06..25739.22 rows=96 width=291) (actual time=27.762..28.318 rows=1386 loops=1)
+              Buffers: shared hit=21145 read=19913
+              ->  Sort  (cost=25737.06..25737.30 rows=96 width=259) (actual time=27.752..27.897 rows=1386 loops=1)
+                    Sort Key: item.i_class
+                    Sort Method: quicksort  Memory: 399kB
+                    Buffers: shared hit=21145 read=19913
+                    ->  Finalize GroupAggregate  (cost=25720.86..25733.90 rows=96 width=259) (actual time=26.107..27.382 rows=1386 loops=1)
+                          Group Key: item.i_item_id, item.i_item_desc, item.i_category, item.i_class, item.i_current_price
+                          Buffers: shared hit=21145 read=19913
+                          ->  Gather Merge  (cost=25720.86..25731.30 rows=80 width=259) (actual time=26.102..26.884 rows=1803 loops=1)
+                                Workers Planned: 2
+                                Workers Launched: 2
+                                Buffers: shared hit=21145 read=19913
+                                ->  Partial GroupAggregate  (cost=24720.84..24722.04 rows=40 width=259) (actual time=25.141..25.356 rows=601 loops=3)
+                                      Group Key: item.i_item_id, item.i_item_desc, item.i_category, item.i_class, item.i_current_price
+                                      Buffers: shared hit=21145 read=19913
+                                      ->  Sort  (cost=24720.84..24720.94 rows=40 width=233) (actual time=25.136..25.158 rows=674 loops=3)
+                                            Sort Key: item.i_item_id, item.i_item_desc, item.i_category, item.i_class, item.i_current_price
+                                            Sort Method: quicksort  Memory: 195kB
+                                            Buffers: shared hit=21145 read=19913
+                                            Worker 0:  Sort Method: quicksort  Memory: 183kB
+                                            Worker 1:  Sort Method: quicksort  Memory: 205kB
+                                            ->  Nested Loop  (cost=2069.08..24719.77 rows=40 width=233) (actual time=1.824..24.520 rows=674 loops=3)
+                                                  Buffers: shared hit=21101 read=19913
+                                                  ->  Parallel Hash Join  (cost=2068.79..24677.09 rows=135 width=10) (actual time=1.752..21.415 rows=2304 loops=3)
+                                                        Hash Cond: (web_sales.ws_sold_date_sk = date_dim.d_date_sk)
+                                                        Buffers: shared hit=1645 read=18631
+                                                        ->  Parallel Seq Scan on web_sales  (cost=0.00..21821.43 rows=299743 width=14) (actual time=0.009..11.905 rows=239795 loops=3)
+                                                              Buffers: shared hit=193 read=18631
+                                                        ->  Parallel Hash  (cost=2068.55..2068.55 rows=19 width=4) (actual time=1.448..1.449 rows=10 loops=3)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                              Buffers: shared hit=1424
+                                                              ->  Parallel Seq Scan on date_dim  (cost=0.00..2068.55 rows=19 width=4) (actual time=0.916..1.431 rows=10 loops=3)
+                                                                    Filter: ((d_date >= '1998-03-11'::date) AND (d_date <= '1998-04-10'::date))
+                                                                    Rows Removed by Filter: 24339
+                                                                    Buffers: shared hit=1424
+                                                  ->  Index Scan using item_pkey on item  (cost=0.29..0.32 rows=1 width=231) (actual time=0.001..0.001 rows=0 loops=6912)
+                                                        Index Cond: (i_item_sk = web_sales.ws_item_sk)
+                                                        Filter: (i_category = ANY ('{Sports,Women,Jewelry}'::bpchar[]))
+                                                        Rows Removed by Filter: 1
+                                                        Buffers: shared hit=19456 read=1282
+Planning:
+  Buffers: shared hit=316 read=21
+Planning Time: 0.503 ms
+Execution Time: 28.780 ms

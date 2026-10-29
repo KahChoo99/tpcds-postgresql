@@ -1,0 +1,55 @@
+Limit  (cost=26108.89..26121.53 rows=100 width=46) (actual time=37.930..39.381 rows=21 loops=1)
+  Buffers: shared hit=190362 read=18727
+  ->  Finalize GroupAggregate  (cost=26108.89..26167.43 rows=463 width=46) (actual time=37.929..39.379 rows=21 loops=1)
+        Group Key: customer_address.ca_zip, customer_address.ca_state
+        Buffers: shared hit=190362 read=18727
+        ->  Gather Merge  (cost=26108.89..26157.78 rows=386 width=46) (actual time=37.925..39.370 rows=21 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=190362 read=18727
+              ->  Partial GroupAggregate  (cost=25108.86..25113.20 rows=193 width=46) (actual time=36.913..36.917 rows=7 loops=3)
+                    Group Key: customer_address.ca_zip, customer_address.ca_state
+                    Buffers: shared hit=190362 read=18727
+                    ->  Sort  (cost=25108.86..25109.34 rows=193 width=20) (actual time=36.906..36.908 rows=7 loops=3)
+                          Sort Key: customer_address.ca_zip, customer_address.ca_state
+                          Sort Method: quicksort  Memory: 25kB
+                          Buffers: shared hit=190362 read=18727
+                          Worker 0:  Sort Method: quicksort  Memory: 25kB
+                          Worker 1:  Sort Method: quicksort  Memory: 25kB
+                          ->  Nested Loop  (cost=2117.38..25101.53 rows=193 width=20) (actual time=8.179..36.894 rows=7 loops=3)
+                                Join Filter: ((substr((customer_address.ca_zip)::text, 1, 5) = ANY ('{85669,86197,88274,83405,86475,85392,85460,80348,81792}'::text[])) OR (hashed SubPlan 1))
+                                Rows Removed by Join Filter: 6982
+                                Buffers: shared hit=190348 read=18727
+                                ->  Nested Loop  (cost=2069.80..24930.65 rows=369 width=24) (actual time=1.832..30.497 rows=6989 loops=3)
+                                      Buffers: shared hit=127361 read=18727
+                                      ->  Nested Loop  (cost=2069.51..24798.36 rows=369 width=14) (actual time=1.821..26.401 rows=6989 loops=3)
+                                            Buffers: shared hit=64455 read=18727
+                                            ->  Parallel Hash Join  (cost=2069.21..24677.52 rows=369 width=14) (actual time=1.809..21.961 rows=6990 loops=3)
+                                                  Hash Cond: (web_sales.ws_sold_date_sk = date_dim.d_date_sk)
+                                                  Buffers: shared hit=1549 read=18727
+                                                  ->  Parallel Seq Scan on web_sales  (cost=0.00..21821.43 rows=299743 width=18) (actual time=0.010..11.705 rows=239795 loops=3)
+                                                        Buffers: shared hit=97 read=18727
+                                                  ->  Parallel Hash  (cost=2068.55..2068.55 rows=53 width=4) (actual time=1.660..1.660 rows=30 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 104kB
+                                                        Buffers: shared hit=1424
+                                                        ->  Parallel Seq Scan on date_dim  (cost=0.00..2068.55 rows=53 width=4) (actual time=0.753..1.617 rows=30 loops=3)
+                                                              Filter: ((d_qoy = 1) AND (d_year = 2002))
+                                                              Rows Removed by Filter: 24319
+                                                              Buffers: shared hit=1424
+                                            ->  Index Scan using customer_pkey on customer  (cost=0.29..0.33 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=20970)
+                                                  Index Cond: (c_customer_sk = web_sales.ws_bill_customer_sk)
+                                                  Buffers: shared hit=62906
+                                      ->  Index Scan using customer_address_pkey on customer_address  (cost=0.29..0.36 rows=1 width=18) (actual time=0.000..0.000 rows=1 loops=20968)
+                                            Index Cond: (ca_address_sk = customer.c_current_addr_sk)
+                                            Buffers: shared hit=62906
+                                ->  Index Scan using item_pkey on item  (cost=0.29..0.31 rows=1 width=21) (actual time=0.001..0.001 rows=1 loops=20968)
+                                      Index Cond: (i_item_sk = web_sales.ws_item_sk)
+                                      Buffers: shared hit=62906
+                                SubPlan 1
+                                  ->  Index Scan using item_pkey on item item_1  (cost=0.29..47.25 rows=10 width=17) (actual time=0.008..0.012 rows=10 loops=3)
+                                        Index Cond: (i_item_sk = ANY ('{2,3,5,7,11,13,17,19,23,29}'::integer[]))
+                                        Buffers: shared hit=75
+Planning:
+  Buffers: shared hit=385 read=8
+Planning Time: 0.653 ms
+Execution Time: 39.453 ms

@@ -1,0 +1,70 @@
+Limit  (cost=14439.98..14442.68 rows=7 width=68) (actual time=110.856..112.117 rows=100 loops=1)
+  Buffers: shared hit=46313 read=87271
+  ->  Incremental Sort  (cost=14439.98..14442.68 rows=7 width=68) (actual time=110.855..112.113 rows=100 loops=1)
+        Sort Key: tmp1.i_manager_id, tmp1.avg_monthly_sales, tmp1.sum_sales
+        Presorted Key: tmp1.i_manager_id
+        Full-sort Groups: 4  Sort Methods: top-N heapsort, quicksort  Average Memory: 27kB  Peak Memory: 27kB
+        Buffers: shared hit=46313 read=87271
+        ->  Subquery Scan on tmp1  (cost=14439.57..14442.36 rows=7 width=68) (actual time=110.771..112.085 rows=110 loops=1)
+              Filter: (CASE WHEN (tmp1.avg_monthly_sales > '0'::numeric) THEN (abs((tmp1.sum_sales - tmp1.avg_monthly_sales)) / tmp1.avg_monthly_sales) ELSE NULL::numeric END > 0.1)
+              Rows Removed by Filter: 29
+              Buffers: shared hit=46310 read=87271
+              ->  WindowAgg  (cost=14439.57..14441.89 rows=21 width=72) (actual time=110.769..112.052 rows=139 loops=1)
+                    Buffers: shared hit=46310 read=87271
+                    ->  Finalize GroupAggregate  (cost=14439.57..14441.58 rows=21 width=40) (actual time=110.760..112.018 rows=141 loops=1)
+                          Group Key: item.i_manager_id, date_dim.d_moy
+                          Buffers: shared hit=46310 read=87271
+                          ->  Gather Merge  (cost=14439.57..14441.19 rows=12 width=40) (actual time=110.755..111.968 rows=239 loops=1)
+                                Workers Planned: 1
+                                Workers Launched: 1
+                                Buffers: shared hit=46310 read=87271
+                                ->  Partial GroupAggregate  (cost=13439.56..13439.83 rows=12 width=40) (actual time=109.802..109.928 rows=177 loops=2)
+                                      Group Key: item.i_manager_id, date_dim.d_moy
+                                      Buffers: shared hit=46310 read=87271
+                                      ->  Sort  (cost=13439.56..13439.59 rows=12 width=14) (actual time=109.793..109.822 rows=1242 loops=2)
+                                            Sort Key: item.i_manager_id, date_dim.d_moy
+                                            Sort Method: quicksort  Memory: 104kB
+                                            Buffers: shared hit=46310 read=87271
+                                            Worker 0:  Sort Method: quicksort  Memory: 110kB
+                                            ->  Nested Loop  (cost=6.27..13439.35 rows=12 width=14) (actual time=0.086..109.561 rows=1499 loops=2)
+                                                  Buffers: shared hit=46303 read=87271
+                                                  ->  Nested Loop  (cost=6.13..13438.05 rows=13 width=18) (actual time=0.080..109.267 rows=1530 loops=2)
+                                                        Buffers: shared hit=46288 read=87271
+                                                        ->  Nested Loop  (cost=5.79..12736.69 rows=2730 width=18) (actual time=0.043..99.829 rows=60073 loops=2)
+                                                              Buffers: shared hit=36990 read=87250
+                                                              ->  Parallel Seq Scan on item  (cost=0.00..1635.06 rows=17 width=8) (actual time=0.024..3.261 rows=467 loops=2)
+                                                                    Filter: (((i_category = ANY ('{Books,Children,Electronics}'::bpchar[])) AND (i_class = ANY ('{personal,portable,reference,self-help}'::bpchar[])) AND (i_brand = ANY ('{"scholaramalgamalg #14","scholaramalgamalg #7","exportiunivamalg #9","scholaramalgamalg #9"}'::bpchar[]))) OR ((i_category = ANY ('{Women,Music,Men}'::bpchar[])) AND (i_class = ANY ('{accessories,classical,fragrances,pants}'::bpchar[])) AND (i_brand = ANY ('{"amalgimporto #1","edu packscholar #1","exportiimporto #1","importoamalg #1"}'::bpchar[]))))
+                                                                    Rows Removed by Filter: 8533
+                                                                    Buffers: shared read=1238
+                                                              ->  Bitmap Heap Scan on store_sales  (cost=5.79..651.28 rows=176 width=18) (actual time=0.012..0.198 rows=129 loops=934)
+                                                                    Recheck Cond: (item.i_item_sk = ss_item_sk)
+                                                                    Heap Blocks: exact=60638
+                                                                    Buffers: shared hit=36990 read=86012
+                                                                    ->  Bitmap Index Scan on store_sales_pkey  (cost=0.00..5.75 rows=176 width=0) (actual time=0.005..0.005 rows=129 loops=934)
+                                                                          Index Cond: (ss_item_sk = item.i_item_sk)
+                                                                          Buffers: shared hit=1850 read=1134
+                                                        ->  Memoize  (cost=0.33..0.36 rows=1 width=8) (actual time=0.000..0.000 rows=0 loops=120146)
+                                                              Cache Key: store_sales.ss_sold_date_sk
+                                                              Cache Mode: logical
+                                                              Hits: 59190  Misses: 1519  Evictions: 0  Overflows: 0  Memory Usage: 107kB
+                                                              Buffers: shared hit=9298 read=21
+                                                              Worker 0:  Hits: 57848  Misses: 1589  Evictions: 0  Overflows: 0  Memory Usage: 114kB
+                                                              ->  Index Scan using date_dim_pkey on date_dim  (cost=0.32..0.35 rows=1 width=8) (actual time=0.001..0.001 rows=0 loops=3108)
+                                                                    Index Cond: (d_date_sk = store_sales.ss_sold_date_sk)
+                                                                    Filter: (d_month_seq = ANY ('{1215,1216,1217,1218,1219,1220,1221,1222,1223,1224,1225,1226}'::integer[]))
+                                                                    Rows Removed by Filter: 1
+                                                                    Buffers: shared hit=9298 read=21
+                                                  ->  Memoize  (cost=0.15..0.16 rows=1 width=4) (actual time=0.000..0.000 rows=1 loops=3060)
+                                                        Cache Key: store_sales.ss_store_sk
+                                                        Cache Mode: logical
+                                                        Hits: 1444  Misses: 7  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                                        Buffers: shared hit=15
+                                                        Worker 0:  Hits: 1602  Misses: 7  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                                        ->  Index Only Scan using store_pkey on store  (cost=0.14..0.15 rows=1 width=4) (actual time=0.001..0.001 rows=1 loops=14)
+                                                              Index Cond: (s_store_sk = store_sales.ss_store_sk)
+                                                              Heap Fetches: 0
+                                                              Buffers: shared hit=15
+Planning:
+  Buffers: shared hit=237 read=2
+Planning Time: 0.444 ms
+Execution Time: 112.196 ms

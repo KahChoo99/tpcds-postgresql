@@ -1,0 +1,15 @@
+-- statement 1
+Limit  (cost=10457.63..10458.59 rows=8 width=51)
+  ->  Unique  (cost=10457.63..10458.59 rows=8 width=51)
+        ->  Gather Merge  (cost=10457.63..10458.57 rows=8 width=51)
+              Workers Planned: 2
+              ->  Unique  (cost=9457.60..9457.62 rows=4 width=51)
+                    ->  Sort  (cost=9457.60..9457.61 rows=4 width=51)
+                          Sort Key: i1.i_product_name
+                          ->  Parallel Hash Semi Join  (cost=5403.66..9457.56 rows=4 width=51)
+                                Hash Cond: (i1.i_manufact = i2.i_manufact)
+                                ->  Parallel Seq Scan on item i1  (cost=0.00..4053.50 rows=113 width=102)
+                                      Filter: ((i_manufact_id >= 987) AND (i_manufact_id <= 1027))
+                                ->  Parallel Hash  (cost=5403.50..5403.50 rows=13 width=51)
+                                      ->  Parallel Seq Scan on item i2  (cost=0.00..5403.50 rows=13 width=51)
+                                            Filter: (((i_category = 'Women'::bpchar) AND (((i_color = ANY ('{papaya,deep}'::bpchar[])) AND (i_units = ANY ('{Pallet,Tsp}'::bpchar[])) AND (i_size = ANY ('{economy,"extra large"}'::bpchar[]))) OR ((i_color = ANY ('{wheat,tan}'::bpchar[])) AND (i_units = ANY ('{Gram,Dram}'::bpchar[])) AND (i_size = ANY ('{medium,petite}'::bpchar[]))) OR ((i_color = ANY ('{lemon,chartreuse}'::bpchar[])) AND (i_units = ANY ('{Case,Bundle}'::bpchar[])) AND (i_size = ANY ('{economy,"extra large"}'::bpchar[]))) OR ((i_color = ANY ('{linen,ghost}'::bpchar[])) AND (i_units = ANY ('{Ton,Box}'::bpchar[])) AND (i_size = ANY ('{medium,petite}'::bpchar[]))))) OR ((i_category = 'Men'::bpchar) AND (((i_color = ANY ('{pale,tomato}'::bpchar[])) AND (i_units = ANY ('{Unknown,Cup}'::bpchar[])) AND (i_size = ANY ('{small,N/A}'::bpchar[]))) OR ((i_color = ANY ('{forest,yellow}'::bpchar[])) AND (i_units = ANY ('{N/A,Oz}'::bpchar[])) AND (i_size = ANY ('{economy,"extra large"}'::bpchar[]))) OR ((i_color = ANY ('{seashell,metallic}'::bpchar[])) AND (i_units = ANY ('{Each,Bunch}'::bpchar[])) AND (i_size = ANY ('{small,N/A}'::bpchar[]))) OR ((i_color = ANY ('{floral,chiffon}'::bpchar[])) AND (i_units = ANY ('{Lb,Gross}'::bpchar[])) AND (i_size = ANY ('{economy,"extra large"}'::bpchar[]))))))

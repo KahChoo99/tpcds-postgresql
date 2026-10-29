@@ -1,0 +1,80 @@
+Limit  (cost=271018.03..271018.05 rows=1 width=110) (actual time=60.639..62.246 rows=0 loops=1)
+  Buffers: shared hit=390 read=51364
+  ->  Merge Join  (cost=271018.03..271018.05 rows=1 width=110) (actual time=45.706..47.313 rows=0 loops=1)
+        Merge Cond: ((rank() OVER (?)) = (rank() OVER (?)))
+        Buffers: shared hit=390 read=51364
+        ->  Sort  (cost=135509.01..135509.02 rows=1 width=59) (actual time=45.705..47.311 rows=0 loops=1)
+              Sort Key: (rank() OVER (?))
+              Sort Method: quicksort  Memory: 25kB
+              Buffers: shared hit=390 read=51364
+              ->  Nested Loop  (cost=135500.96..135509.00 rows=1 width=59) (actual time=45.698..47.304 rows=0 loops=1)
+                    Buffers: shared hit=390 read=51364
+                    ->  WindowAgg  (cost=135500.67..135500.69 rows=1 width=44) (actual time=45.698..47.303 rows=0 loops=1)
+                          Run Condition: (rank() OVER (?) < 11)
+                          Buffers: shared hit=390 read=51364
+                          ->  Sort  (cost=135500.67..135500.67 rows=1 width=36) (actual time=45.696..47.301 rows=0 loops=1)
+                                Sort Key: v1.rank_col
+                                Sort Method: quicksort  Memory: 25kB
+                                Buffers: shared hit=390 read=51364
+                                ->  Subquery Scan on v1  (cost=135500.63..135500.66 rows=1 width=36) (actual time=45.682..47.287 rows=0 loops=1)
+                                      Buffers: shared hit=387 read=51364
+                                      ->  GroupAggregate  (cost=135500.63..135500.66 rows=1 width=36) (actual time=45.681..47.286 rows=0 loops=1)
+                                            Group Key: ss1.ss_item_sk
+                                            Filter: (avg(ss1.ss_net_profit) > (0.9 * $1))
+                                            Buffers: shared hit=387 read=51364
+                                            InitPlan 1 (returns $1)
+                                              ->  GroupAggregate  (cost=1000.00..67750.32 rows=1 width=36) (never executed)
+                                                    ->  Gather  (cost=1000.00..67750.30 rows=1 width=10) (never executed)
+                                                          Workers Planned: 2
+                                                          Workers Launched: 0
+                                                          ->  Parallel Seq Scan on store_sales  (cost=0.00..66750.20 rows=1 width=10) (never executed)
+                                                                Filter: ((ss_addr_sk IS NULL) AND (ss_store_sk = 3))
+                                            ->  Sort  (cost=67750.31..67750.32 rows=1 width=10) (actual time=45.680..47.283 rows=0 loops=1)
+                                                  Sort Key: ss1.ss_item_sk
+                                                  Sort Method: quicksort  Memory: 25kB
+                                                  Buffers: shared hit=387 read=51364
+                                                  ->  Gather  (cost=1000.00..67750.30 rows=1 width=10) (actual time=45.677..47.280 rows=0 loops=1)
+                                                        Workers Planned: 2
+                                                        Workers Launched: 2
+                                                        Buffers: shared hit=384 read=51364
+                                                        ->  Parallel Seq Scan on store_sales ss1  (cost=0.00..66750.20 rows=1 width=10) (actual time=40.868..40.868 rows=0 loops=3)
+                                                              Filter: (ss_store_sk = 3)
+                                                              Rows Removed by Filter: 960135
+                                                              Buffers: shared hit=384 read=51364
+                    ->  Index Scan using item_pkey on item i1  (cost=0.29..8.30 rows=1 width=55) (never executed)
+                          Index Cond: (i_item_sk = v1.item_sk)
+        ->  Sort  (cost=135509.01..135509.02 rows=1 width=59) (never executed)
+              Sort Key: (rank() OVER (?))
+              ->  Nested Loop  (cost=135500.96..135509.00 rows=1 width=59) (never executed)
+                    ->  WindowAgg  (cost=135500.67..135500.69 rows=1 width=44) (never executed)
+                          Run Condition: (rank() OVER (?) < 11)
+                          ->  Sort  (cost=135500.67..135500.67 rows=1 width=36) (never executed)
+                                Sort Key: v2.rank_col DESC
+                                ->  Subquery Scan on v2  (cost=135500.63..135500.66 rows=1 width=36) (never executed)
+                                      ->  GroupAggregate  (cost=135500.63..135500.66 rows=1 width=36) (never executed)
+                                            Group Key: ss1_1.ss_item_sk
+                                            Filter: (avg(ss1_1.ss_net_profit) > (0.9 * $3))
+                                            InitPlan 2 (returns $3)
+                                              ->  GroupAggregate  (cost=1000.00..67750.32 rows=1 width=36) (never executed)
+                                                    ->  Gather  (cost=1000.00..67750.30 rows=1 width=10) (never executed)
+                                                          Workers Planned: 2
+                                                          Workers Launched: 0
+                                                          ->  Parallel Seq Scan on store_sales store_sales_1  (cost=0.00..66750.20 rows=1 width=10) (never executed)
+                                                                Filter: ((ss_addr_sk IS NULL) AND (ss_store_sk = 3))
+                                            ->  Sort  (cost=67750.31..67750.32 rows=1 width=10) (never executed)
+                                                  Sort Key: ss1_1.ss_item_sk
+                                                  ->  Gather  (cost=1000.00..67750.30 rows=1 width=10) (never executed)
+                                                        Workers Planned: 2
+                                                        Workers Launched: 0
+                                                        ->  Parallel Seq Scan on store_sales ss1_1  (cost=0.00..66750.20 rows=1 width=10) (never executed)
+                                                              Filter: (ss_store_sk = 3)
+                    ->  Index Scan using item_pkey on item i2  (cost=0.29..8.30 rows=1 width=55) (never executed)
+                          Index Cond: (i_item_sk = v2.item_sk)
+Planning:
+  Buffers: shared hit=153 read=1
+Planning Time: 0.314 ms
+JIT:
+  Functions: 68
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 1.498 ms, Inlining 0.000 ms, Optimization 1.112 ms, Emission 19.272 ms, Total 21.882 ms
+Execution Time: 69.073 ms

@@ -1,0 +1,52 @@
+SET
+Limit  (cost=57706.81..57706.84 rows=11 width=87) (actual time=32.166..33.402 rows=65 loops=1)
+  Buffers: shared hit=18308 read=21809
+  ->  Sort  (cost=57706.81..57706.84 rows=11 width=87) (actual time=32.165..33.399 rows=65 loops=1)
+        Sort Key: (sum(store_sales.ss_ext_sales_price)) DESC, item.i_brand_id
+        Sort Method: quicksort  Memory: 33kB
+        Buffers: shared hit=18308 read=21809
+        ->  Finalize GroupAggregate  (cost=57705.62..57706.62 rows=11 width=87) (actual time=32.061..33.376 rows=65 loops=1)
+              Group Key: item.i_brand, item.i_brand_id
+              Buffers: shared hit=18305 read=21809
+              ->  Gather Merge  (cost=57705.62..57706.43 rows=6 width=87) (actual time=32.056..33.356 rows=70 loops=1)
+                    Workers Planned: 1
+                    Workers Launched: 1
+                    Buffers: shared hit=18305 read=21809
+                    ->  Partial GroupAggregate  (cost=56705.61..56705.74 rows=6 width=87) (actual time=31.313..31.362 rows=35 loops=2)
+                          Group Key: item.i_brand, item.i_brand_id
+                          Buffers: shared hit=18305 read=21809
+                          ->  Sort  (cost=56705.61..56705.62 rows=6 width=61) (actual time=31.305..31.316 rows=392 loops=2)
+                                Sort Key: item.i_brand, item.i_brand_id
+                                Sort Method: quicksort  Memory: 61kB
+                                Buffers: shared hit=18305 read=21809
+                                Worker 0:  Sort Method: quicksort  Memory: 55kB
+                                ->  Nested Loop  (cost=6.07..56705.53 rows=6 width=61) (actual time=0.833..31.156 rows=392 loops=2)
+                                      Buffers: shared hit=18291 read=21809
+                                      ->  Nested Loop  (cost=5.77..55717.46 rows=16379 width=65) (actual time=0.034..27.828 rows=13738 loops=2)
+                                            Buffers: shared hit=7451 read=21809
+                                            ->  Parallel Seq Scan on item  (cost=0.00..1370.35 rows=102 width=59) (actual time=0.011..1.491 rows=87 loops=2)
+                                                  Filter: (i_manager_id = 57)
+                                                  Rows Removed by Filter: 8913
+                                                  Buffers: shared read=1238
+                                            ->  Bitmap Heap Scan on store_sales  (cost=5.77..531.05 rows=176 width=14) (actual time=0.016..0.291 rows=158 loops=174)
+                                                  Recheck Cond: (ss_item_sk = item.i_item_sk)
+                                                  Heap Blocks: exact=13709
+                                                  Buffers: shared hit=7451 read=20571
+                                                  ->  Bitmap Index Scan on store_sales_pkey  (cost=0.00..5.73 rows=176 width=0) (actual time=0.008..0.008 rows=158 loops=174)
+                                                        Index Cond: (ss_item_sk = item.i_item_sk)
+                                                        Buffers: shared hit=310 read=262
+                                      ->  Memoize  (cost=0.30..0.33 rows=1 width=4) (actual time=0.000..0.000 rows=0 loops=27477)
+                                            Cache Key: store_sales.ss_sold_date_sk
+                                            Cache Mode: logical
+                                            Hits: 11914  Misses: 1809  Evictions: 0  Overflows: 0  Memory Usage: 122kB
+                                            Buffers: shared hit=10840
+                                            Worker 0:  Hits: 11948  Misses: 1806  Evictions: 0  Overflows: 0  Memory Usage: 122kB
+                                            ->  Index Scan using date_dim_pkey on date_dim  (cost=0.29..0.32 rows=1 width=4) (actual time=0.001..0.001 rows=0 loops=3615)
+                                                  Index Cond: (d_date_sk = store_sales.ss_sold_date_sk)
+                                                  Filter: ((d_moy = 12) AND (d_year = 2000))
+                                                  Rows Removed by Filter: 1
+                                                  Buffers: shared hit=10840
+Planning:
+  Buffers: shared hit=175 read=40
+Planning Time: 0.374 ms
+Execution Time: 33.474 ms

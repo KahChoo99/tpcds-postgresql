@@ -1,0 +1,65 @@
+SET
+Limit  (cost=74965.49..74965.49 rows=1 width=72) (actual time=534.279..536.240 rows=1 loops=1)
+  Buffers: shared hit=426595 read=43461
+  ->  Sort  (cost=74965.49..74965.49 rows=1 width=72) (actual time=534.279..536.239 rows=1 loops=1)
+        Sort Key: (count(DISTINCT cs1.cs_order_number))
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=426595 read=43461
+        ->  Aggregate  (cost=74965.47..74965.48 rows=1 width=72) (actual time=534.272..536.232 rows=1 loops=1)
+              Buffers: shared hit=426592 read=43461
+              ->  Sort  (cost=74965.30..74965.34 rows=16 width=16) (actual time=534.228..536.198 rows=404 loops=1)
+                    Sort Key: cs1.cs_order_number
+                    Sort Method: quicksort  Memory: 43kB
+                    Buffers: shared hit=426592 read=43461
+                    ->  Nested Loop  (cost=48067.84..74964.98 rows=16 width=16) (actual time=466.629..536.150 rows=404 loops=1)
+                          Join Filter: (call_center.cc_call_center_sk = cs1.cs_call_center_sk)
+                          Rows Removed by Join Filter: 776
+                          Buffers: shared hit=426589 read=43461
+                          ->  Gather  (cost=48067.84..74962.62 rows=16 width=20) (actual time=466.582..536.017 rows=404 loops=1)
+                                Workers Planned: 2
+                                Workers Launched: 2
+                                Buffers: shared hit=426589 read=43460
+                                ->  Nested Loop Semi Join  (cost=47067.84..73961.02 rows=7 width=20) (actual time=50.849..211.142 rows=135 loops=3)
+                                      Buffers: shared hit=426589 read=43460
+                                      ->  Nested Loop  (cost=47067.41..50935.15 rows=7 width=24) (actual time=50.156..53.803 rows=135 loops=3)
+                                            Buffers: shared hit=37991 read=37728
+                                            ->  Parallel Hash Right Anti Join  (cost=47067.12..50879.36 rows=178 width=28) (actual time=50.148..50.806 rows=4031 loops=3)
+                                                  Hash Cond: (cr1.cr_order_number = cs1.cs_order_number)
+                                                  Buffers: shared hit=1790 read=37703
+                                                  ->  Parallel Index Only Scan using catalog_returns_pkey on catalog_returns cr1  (cost=0.42..3585.03 rows=60028 width=4) (actual time=0.047..2.517 rows=48022 loops=3)
+                                                        Heap Fetches: 0
+                                                        Buffers: shared hit=3 read=564
+                                                  ->  Parallel Hash  (cost=47060.36..47060.36 rows=507 width=28) (actual time=44.739..44.740 rows=11153 loops=3)
+                                                        Buckets: 32768 (originally 2048)  Batches: 1 (originally 1)  Memory Usage: 2608kB
+                                                        Buffers: shared hit=1693 read=37139
+                                                        ->  Parallel Hash Join  (cost=2050.00..47060.36 rows=507 width=28) (actual time=24.078..42.893 rows=11153 loops=3)
+                                                              Hash Cond: (cs1.cs_ship_date_sk = date_dim.d_date_sk)
+                                                              Buffers: shared hit=1693 read=37139
+                                                              ->  Parallel Seq Scan on catalog_sales cs1  (cost=0.00..43433.55 rows=600655 width=32) (actual time=0.007..23.249 rows=480516 loops=3)
+                                                                    Buffers: shared hit=288 read=37139
+                                                              ->  Parallel Hash  (cost=2049.55..2049.55 rows=36 width=4) (actual time=1.382..1.383 rows=20 loops=3)
+                                                                    Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                                    Buffers: shared hit=1405
+                                                                    ->  Parallel Seq Scan on date_dim  (cost=0.00..2049.55 rows=36 width=4) (actual time=0.850..1.357 rows=20 loops=3)
+                                                                          Filter: ((d_date >= '2001-03-01'::date) AND (d_date <= '2001-04-30'::date))
+                                                                          Rows Removed by Filter: 24329
+                                                                          Buffers: shared hit=1405
+                                            ->  Index Scan using customer_address_pkey on customer_address  (cost=0.29..0.31 rows=1 width=4) (actual time=0.001..0.001 rows=0 loops=12094)
+                                                  Index Cond: (ca_address_sk = cs1.cs_ship_addr_sk)
+                                                  Filter: (ca_state = 'KY'::bpchar)
+                                                  Rows Removed by Filter: 1
+                                                  Buffers: shared hit=36201 read=25
+                                      ->  Index Scan using catalog_sales_pkey on catalog_sales cs2  (cost=0.43..10812.49 rows=9 width=8) (actual time=1.165..1.165 rows=1 loops=405)
+                                            Index Cond: (cs_order_number = cs1.cs_order_number)
+                                            Filter: (cs1.cs_warehouse_sk <> cs_warehouse_sk)
+                                            Rows Removed by Filter: 0
+                                            Buffers: shared hit=388598 read=5732
+                          ->  Materialize  (cost=0.00..1.13 rows=6 width=4) (actual time=0.000..0.000 rows=3 loops=404)
+                                Buffers: shared read=1
+                                ->  Seq Scan on call_center  (cost=0.00..1.10 rows=6 width=4) (actual time=0.029..0.030 rows=5 loops=1)
+                                      Filter: ((cc_county)::text = ANY ('{"Williamson County","Williamson County","Williamson County","Williamson County","Williamson County"}'::text[]))
+                                      Buffers: shared read=1
+Planning:
+  Buffers: shared hit=286 read=11
+Planning Time: 0.821 ms
+Execution Time: 536.289 ms

@@ -1,0 +1,59 @@
+SET
+Limit  (cost=12696.29..12700.26 rows=34 width=49) (actual time=15.658..17.011 rows=26 loops=1)
+  Buffers: shared hit=5185 read=4102
+  ->  Gather Merge  (cost=12696.29..12700.26 rows=34 width=49) (actual time=15.658..17.009 rows=26 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=5185 read=4102
+        ->  Sort  (cost=11696.26..11696.31 rows=17 width=49) (actual time=14.747..14.752 rows=9 loops=3)
+              Sort Key: customer.c_customer_id
+              Sort Method: quicksort  Memory: 25kB
+              Buffers: shared hit=5185 read=4102
+              Worker 0:  Sort Method: quicksort  Memory: 25kB
+              Worker 1:  Sort Method: quicksort  Memory: 25kB
+              ->  Nested Loop  (cost=5063.67..11695.92 rows=17 width=49) (actual time=6.819..14.731 rows=9 loops=3)
+                    Join Filter: (customer_demographics.cd_demo_sk = customer.c_current_cdemo_sk)
+                    Buffers: shared hit=5171 read=4102
+                    ->  Hash Join  (cost=5063.24..11626.21 rows=131 width=77) (actual time=6.807..14.696 rows=9 loops=3)
+                          Hash Cond: (household_demographics.hd_income_band_sk = income_band.ib_income_band_sk)
+                          Buffers: shared hit=5088 read=4102
+                          ->  Nested Loop  (cost=5061.85..11623.63 rows=375 width=81) (actual time=5.789..14.661 rows=39 loops=3)
+                                Buffers: shared hit=4991 read=4102
+                                ->  Parallel Hash Join  (cost=5061.57..11506.07 rows=388 width=81) (actual time=5.777..14.583 rows=40 loops=3)
+                                      Hash Cond: (store_returns.sr_cdemo_sk = customer.c_current_cdemo_sk)
+                                      Buffers: shared hit=4635 read=4102
+                                      ->  Parallel Seq Scan on store_returns  (cost=0.00..5992.98 rows=119798 width=4) (actual time=0.008..4.220 rows=95838 loops=3)
+                                            Buffers: shared hit=693 read=4102
+                                      ->  Parallel Hash  (cost=5055.39..5055.39 rows=494 width=77) (actual time=5.589..5.591 rows=283 loops=3)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 104kB
+                                            Buffers: shared hit=3942
+                                            ->  Parallel Hash Join  (cost=1458.73..5055.39 rows=494 width=77) (actual time=1.223..5.537 rows=283 loops=3)
+                                                  Hash Cond: (customer.c_current_addr_sk = customer_address.ca_address_sk)
+                                                  Buffers: shared hit=3942
+                                                  ->  Parallel Seq Scan on customer  (cost=0.00..3442.24 rows=58824 width=81) (actual time=0.004..1.965 rows=33333 loops=3)
+                                                        Buffers: shared hit=2854
+                                                  ->  Parallel Hash  (cost=1455.65..1455.65 rows=247 width=4) (actual time=1.155..1.155 rows=144 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 104kB
+                                                        Buffers: shared hit=1088
+                                                        ->  Parallel Seq Scan on customer_address  (cost=0.00..1455.65 rows=247 width=4) (actual time=0.014..1.128 rows=144 loops=3)
+                                                              Filter: ((ca_city)::text = 'Sunnyside'::text)
+                                                              Rows Removed by Filter: 16523
+                                                              Buffers: shared hit=1088
+                                ->  Index Scan using household_demographics_pkey on household_demographics  (cost=0.28..0.30 rows=1 width=8) (actual time=0.002..0.002 rows=1 loops=119)
+                                      Index Cond: (hd_demo_sk = customer.c_current_hdemo_sk)
+                                      Buffers: shared hit=356
+                          ->  Hash  (cost=1.30..1.30 rows=7 width=4) (actual time=0.006..0.008 rows=4 loops=3)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=3
+                                ->  Seq Scan on income_band  (cost=0.00..1.30 rows=7 width=4) (actual time=0.004..0.006 rows=4 loops=3)
+                                      Filter: ((ib_lower_bound >= 38068) AND (ib_upper_bound <= 88068))
+                                      Rows Removed by Filter: 16
+                                      Buffers: shared hit=3
+                    ->  Index Only Scan using customer_demographics_pkey on customer_demographics  (cost=0.43..0.52 rows=1 width=4) (actual time=0.003..0.003 rows=1 loops=26)
+                          Index Cond: (cd_demo_sk = store_returns.sr_cdemo_sk)
+                          Heap Fetches: 0
+                          Buffers: shared hit=83
+Planning:
+  Buffers: shared hit=347
+Planning Time: 0.810 ms
+Execution Time: 17.063 ms

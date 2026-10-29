@@ -1,0 +1,4 @@
+query,status,exec_time_run_1,avg_exec_time,median_exec_time,min_exec_time,max_exec_time,error
+Q04,SUCCESS,43.105,43.105,43.105,43.105,43.105,
+Q11,SUCCESS,25.867,25.867,25.867,25.867,25.867,
+Q74,SUCCESS,3.717,3.717,3.717,3.717,3.717,

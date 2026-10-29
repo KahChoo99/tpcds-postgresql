@@ -1,0 +1,38 @@
+-- statement 1
+Limit  (cost=192600.63..192600.88 rows=100 width=78)
+  ->  Sort  (cost=192600.63..193022.31 rows=168672 width=78)
+        Sort Key: c.c_customer_id, c.c_first_name, c.c_last_name, c.c_birth_country
+        ->  Hash Join  (cost=178010.43..186154.11 rows=168672 width=78)
+              Hash Cond: (ws.ws_bill_customer_sk = s.customer_sk)
+              Join Filter: (((sum((ws.ws_ext_list_price - ws.ws_ext_discount_amt)) FILTER (WHERE (d.d_year = 1999))) / (sum((ws.ws_ext_list_price - ws.ws_ext_discount_amt)) FILTER (WHERE (d.d_year = 1998)))) > (s.second_year_total / s.first_year_total))
+              ->  Nested Loop  (cost=45322.10..53451.77 rows=5271 width=150)
+                    ->  GroupAggregate  (cost=45321.80..47768.78 rows=5271 width=68)
+                          Group Key: ws.ws_bill_customer_sk
+                          Filter: (sum((ws.ws_ext_list_price - ws.ws_ext_discount_amt)) FILTER (WHERE (d.d_year = 1998)) > '0'::numeric)
+                          ->  Gather Merge  (cost=45321.80..47215.29 rows=15814 width=21)
+                                Workers Planned: 4
+                                ->  Sort  (cost=44321.74..44331.63 rows=3954 width=21)
+                                      Sort Key: ws.ws_bill_customer_sk
+                                      ->  Parallel Hash Join  (cost=1967.03..44085.51 rows=3954 width=21)
+                                            Hash Cond: (ws.ws_sold_date_sk = d.d_date_sk)
+                                            ->  Parallel Seq Scan on web_sales ws  (cost=0.00..41174.17 rows=359720 width=21)
+                                                  Filter: (ws_bill_customer_sk IS NOT NULL)
+                                            ->  Parallel Hash  (cost=1961.12..1961.12 rows=472 width=8)
+                                                  ->  Parallel Seq Scan on date_dim d  (cost=0.00..1961.12 rows=472 width=8)
+                                                        Filter: (d_year = ANY ('{1998,1999}'::integer[]))
+                    ->  Index Scan using customer_pkey on customer c  (cost=0.29..1.07 rows=1 width=82)
+                          Index Cond: (c_customer_sk = ws.ws_bill_customer_sk)
+              ->  Hash  (cost=132448.33..132448.33 rows=19200 width=68)
+                    ->  Subquery Scan on s  (cost=131248.35..132448.33 rows=19200 width=68)
+                          ->  HashAggregate  (cost=131248.35..132256.33 rows=19200 width=68)
+                                Group Key: ss.ss_customer_sk
+                                Filter: (sum((ss.ss_ext_list_price - ss.ss_ext_discount_amt)) FILTER (WHERE (d_1.d_year = 1998)) > '0'::numeric)
+                                ->  Gather  (cost=2967.03..130240.37 rows=57599 width=18)
+                                      Workers Planned: 4
+                                      ->  Parallel Hash Join  (cost=1967.03..123480.47 rows=14400 width=18)
+                                            Hash Cond: (ss.ss_sold_date_sk = d_1.d_date_sk)
+                                            ->  Parallel Seq Scan on store_sales ss  (cost=0.00..117906.80 rows=1373883 width=18)
+                                                  Filter: (ss_customer_sk IS NOT NULL)
+                                            ->  Parallel Hash  (cost=1961.12..1961.12 rows=472 width=8)
+                                                  ->  Parallel Seq Scan on date_dim d_1  (cost=0.00..1961.12 rows=472 width=8)
+                                                        Filter: (d_year = ANY ('{1998,1999}'::integer[]))

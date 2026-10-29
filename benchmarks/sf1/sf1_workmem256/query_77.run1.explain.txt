@@ -1,0 +1,224 @@
+SET
+Limit  (cost=165081.19..165083.69 rows=100 width=132) (actual time=284.542..285.087 rows=44 loops=1)
+  Buffers: shared hit=22863 read=111464
+  ->  GroupAggregate  (cost=165081.19..165086.61 rows=217 width=132) (actual time=258.881..259.424 rows=44 loops=1)
+        Group Key: ('store channel'::text), store.s_store_sk
+        Group Key: ('store channel'::text)
+        Group Key: ()
+        Buffers: shared hit=22863 read=111464
+        ->  Sort  (cost=165081.19..165081.46 rows=108 width=132) (actual time=258.872..259.394 rows=56 loops=1)
+              Sort Key: ('store channel'::text), store.s_store_sk
+              Sort Method: quicksort  Memory: 28kB
+              Buffers: shared hit=22863 read=111464
+              ->  Append  (cost=6099.85..165077.54 rows=108 width=132) (actual time=104.691..259.360 rows=56 loops=1)
+                    Buffers: shared hit=22860 read=111464
+                    ->  Merge Left Join  (cost=6099.85..79709.15 rows=12 width=132) (actual time=104.691..148.534 rows=6 loops=1)
+                          Merge Cond: (store.s_store_sk = store_1.s_store_sk)
+                          Buffers: shared hit=3894 read=55775
+                          ->  GroupAggregate  (cost=3049.92..70307.72 rows=12 width=68) (actual time=88.817..130.417 rows=6 loops=1)
+                                Group Key: store.s_store_sk
+                                Buffers: shared hit=2235 read=51076
+                                ->  Nested Loop  (cost=3049.92..70298.92 rows=1150 width=16) (actual time=3.797..126.657 rows=60462 loops=1)
+                                      Join Filter: (store.s_store_sk = store_sales.ss_store_sk)
+                                      Rows Removed by Join Filter: 682362
+                                      Buffers: shared hit=2235 read=51076
+                                      ->  Index Only Scan using store_pkey on store  (cost=0.14..8.31 rows=12 width=4) (actual time=0.003..0.010 rows=12 loops=1)
+                                            Heap Fetches: 0
+                                            Buffers: shared hit=2
+                                      ->  Materialize  (cost=3049.79..70076.72 rows=1205 width=16) (actual time=0.310..8.299 rows=61902 loops=12)
+                                            Buffers: shared hit=2233 read=51076
+                                            ->  Gather  (cost=3049.79..70070.69 rows=1205 width=16) (actual time=3.719..81.092 rows=61902 loops=1)
+                                                  Workers Planned: 2
+                                                  Workers Launched: 2
+                                                  Buffers: shared hit=2233 read=51076
+                                                  ->  Parallel Hash Join  (cost=2049.79..68950.19 rows=502 width=16) (actual time=3.512..79.817 rows=20634 loops=3)
+                                                        Hash Cond: (store_sales.ss_sold_date_sk = date_dim.d_date_sk)
+                                                        Buffers: shared hit=2233 read=51076
+                                                        ->  Parallel Seq Scan on store_sales  (cost=0.00..63749.76 rows=1200176 width=20) (actual time=0.009..40.790 rows=960135 loops=3)
+                                                              Buffers: shared hit=672 read=51076
+                                                        ->  Parallel Hash  (cost=2049.55..2049.55 rows=19 width=4) (actual time=1.110..1.110 rows=10 loops=3)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                              Buffers: shared hit=1405
+                                                              ->  Parallel Seq Scan on date_dim  (cost=0.00..2049.55 rows=19 width=4) (actual time=1.560..3.311 rows=31 loops=1)
+                                                                    Filter: ((d_date >= '2001-08-18'::date) AND (d_date <= '2001-09-17'::date))
+                                                                    Rows Removed by Filter: 73018
+                                                                    Buffers: shared hit=1405
+                          ->  GroupAggregate  (cost=3049.92..9401.10 rows=12 width=68) (actual time=15.866..18.104 rows=6 loops=1)
+                                Group Key: store_1.s_store_sk
+                                Buffers: shared hit=1659 read=4699
+                                ->  Nested Loop  (cost=3049.92..9400.03 rows=118 width=16) (actual time=2.742..17.898 rows=3191 loops=1)
+                                      Join Filter: (store_1.s_store_sk = store_returns.sr_store_sk)
+                                      Rows Removed by Join Filter: 35857
+                                      Buffers: shared hit=1659 read=4699
+                                      ->  Index Only Scan using store_pkey on store store_1  (cost=0.14..8.31 rows=12 width=4) (actual time=0.004..0.006 rows=12 loops=1)
+                                            Heap Fetches: 0
+                                            Buffers: shared hit=2
+                                      ->  Materialize  (cost=3049.79..9370.06 rows=122 width=16) (actual time=0.226..1.376 rows=3254 loops=12)
+                                            Buffers: shared hit=1657 read=4699
+                                            ->  Gather  (cost=3049.79..9369.45 rows=122 width=16) (actual time=2.710..15.504 rows=3254 loops=1)
+                                                  Workers Planned: 2
+                                                  Workers Launched: 2
+                                                  Buffers: shared hit=1657 read=4699
+                                                  ->  Parallel Hash Join  (cost=2049.79..8357.25 rows=51 width=16) (actual time=3.055..10.580 rows=1085 loops=3)
+                                                        Hash Cond: (store_returns.sr_returned_date_sk = date_dim_1.d_date_sk)
+                                                        Buffers: shared hit=1657 read=4699
+                                                        ->  Parallel Seq Scan on store_returns  (cost=0.00..5992.98 rows=119798 width=20) (actual time=0.008..4.129 rows=95838 loops=3)
+                                                              Buffers: shared hit=96 read=4699
+                                                        ->  Parallel Hash  (cost=2049.55..2049.55 rows=19 width=4) (actual time=0.808..0.809 rows=10 loops=3)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                              Buffers: shared hit=1405
+                                                              ->  Parallel Seq Scan on date_dim date_dim_1  (cost=0.00..2049.55 rows=19 width=4) (actual time=1.172..2.409 rows=31 loops=1)
+                                                                    Filter: ((d_date >= '2001-08-18'::date) AND (d_date <= '2001-09-17'::date))
+                                                                    Rows Removed by Filter: 73018
+                                                                    Buffers: shared hit=1405
+                    ->  Nested Loop  (cost=55069.38..55075.63 rows=36 width=132) (actual time=64.618..65.269 rows=20 loops=1)
+                          Buffers: shared hit=6168 read=37139
+                          ->  Finalize GroupAggregate  (cost=48070.70..48075.03 rows=6 width=68) (actual time=50.825..51.276 rows=4 loops=1)
+                                Group Key: catalog_sales.cs_call_center_sk
+                                Buffers: shared hit=1821 read=37139
+                                ->  Gather Merge  (cost=48070.70..48074.79 rows=12 width=68) (actual time=50.535..51.264 rows=12 loops=1)
+                                      Workers Planned: 2
+                                      Workers Launched: 2
+                                      Buffers: shared hit=1821 read=37139
+                                      ->  Partial GroupAggregate  (cost=47070.67..47073.38 rows=6 width=68) (actual time=44.775..45.417 rows=4 loops=3)
+                                            Group Key: catalog_sales.cs_call_center_sk
+                                            Buffers: shared hit=1821 read=37139
+                                            ->  Sort  (cost=47070.67..47071.33 rows=262 width=16) (actual time=44.437..44.684 rows=10704 loops=3)
+                                                  Sort Key: catalog_sales.cs_call_center_sk
+                                                  Sort Method: quicksort  Memory: 859kB
+                                                  Buffers: shared hit=1821 read=37139
+                                                  Worker 0:  Sort Method: quicksort  Memory: 881kB
+                                                  Worker 1:  Sort Method: quicksort  Memory: 893kB
+                                                  ->  Parallel Hash Join  (cost=2049.79..47060.15 rows=262 width=16) (actual time=29.795..43.785 rows=10704 loops=3)
+                                                        Hash Cond: (catalog_sales.cs_sold_date_sk = date_dim_2.d_date_sk)
+                                                        Buffers: shared hit=1709 read=37139
+                                                        ->  Parallel Seq Scan on catalog_sales  (cost=0.00..43433.55 rows=600655 width=20) (actual time=0.010..23.216 rows=480516 loops=3)
+                                                              Buffers: shared hit=288 read=37139
+                                                        ->  Parallel Hash  (cost=2049.55..2049.55 rows=19 width=4) (actual time=0.852..0.852 rows=10 loops=3)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                              Buffers: shared hit=1405
+                                                              ->  Parallel Seq Scan on date_dim date_dim_2  (cost=0.00..2049.55 rows=19 width=4) (actual time=1.236..2.535 rows=31 loops=1)
+                                                                    Filter: ((d_date >= '2001-08-18'::date) AND (d_date <= '2001-09-17'::date))
+                                                                    Rows Removed by Filter: 73018
+                                                                    Buffers: shared hit=1405
+                          ->  Materialize  (cost=6998.68..7000.07 rows=6 width=64) (actual time=3.447..3.496 rows=5 loops=4)
+                                Buffers: shared hit=4347
+                                ->  Subquery Scan on cr  (cost=6998.68..7000.04 rows=6 width=64) (actual time=13.788..13.983 rows=5 loops=1)
+                                      Buffers: shared hit=4347
+                                      ->  Finalize GroupAggregate  (cost=6998.68..6999.98 rows=6 width=68) (actual time=13.786..13.981 rows=5 loops=1)
+                                            Group Key: catalog_returns.cr_call_center_sk
+                                            Buffers: shared hit=4347
+                                            ->  Gather Merge  (cost=6998.68..6999.82 rows=6 width=68) (actual time=13.776..13.973 rows=5 loops=1)
+                                                  Workers Planned: 1
+                                                  Workers Launched: 1
+                                                  Buffers: shared hit=4347
+                                                  ->  Partial GroupAggregate  (cost=5998.67..5999.13 rows=6 width=68) (actual time=9.961..10.010 rows=2 loops=2)
+                                                        Group Key: catalog_returns.cr_call_center_sk
+                                                        Buffers: shared hit=4347
+                                                        ->  Sort  (cost=5998.67..5998.76 rows=37 width=16) (actual time=9.929..9.947 rows=740 loops=2)
+                                                              Sort Key: catalog_returns.cr_call_center_sk
+                                                              Sort Method: quicksort  Memory: 117kB
+                                                              Buffers: shared hit=4347
+                                                              Worker 0:  Sort Method: quicksort  Memory: 25kB
+                                                              ->  Parallel Hash Join  (cost=2049.79..5997.71 rows=37 width=16) (actual time=7.756..9.853 rows=740 loops=2)
+                                                                    Hash Cond: (catalog_returns.cr_returned_date_sk = date_dim_3.d_date_sk)
+                                                                    Buffers: shared hit=4291
+                                                                    ->  Parallel Seq Scan on catalog_returns  (cost=0.00..3725.45 rows=84745 width=20) (actual time=0.002..3.222 rows=72034 loops=2)
+                                                                          Buffers: shared hit=2878
+                                                                    ->  Parallel Hash  (cost=2049.55..2049.55 rows=19 width=4) (actual time=1.184..1.184 rows=16 loops=2)
+                                                                          Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                                          Buffers: shared hit=1405
+                                                                          ->  Parallel Seq Scan on date_dim date_dim_3  (cost=0.00..2049.55 rows=19 width=4) (actual time=1.149..2.354 rows=31 loops=1)
+                                                                                Filter: ((d_date >= '2001-08-18'::date) AND (d_date <= '2001-09-17'::date))
+                                                                                Rows Removed by Filter: 73018
+                                                                                Buffers: shared hit=1405
+                    ->  Merge Left Join  (cost=30267.38..30292.22 rows=60 width=132) (actual time=44.131..45.551 rows=30 loops=1)
+                          Merge Cond: (web_page.wp_web_page_sk = web_page_1.wp_web_page_sk)
+                          Buffers: shared hit=12798 read=18550
+                          ->  Finalize GroupAggregate  (cost=25618.09..25638.49 rows=60 width=68) (actual time=31.281..32.489 rows=30 loops=1)
+                                Group Key: web_page.wp_web_page_sk
+                                Buffers: shared hit=1661 read=18549
+                                ->  Gather Merge  (cost=25618.09..25636.09 rows=120 width=68) (actual time=31.223..32.448 rows=90 loops=1)
+                                      Workers Planned: 2
+                                      Workers Launched: 2
+                                      Buffers: shared hit=1661 read=18549
+                                      ->  Partial GroupAggregate  (cost=24618.07..24622.22 rows=60 width=68) (actual time=25.562..26.411 rows=30 loops=3)
+                                            Group Key: web_page.wp_web_page_sk
+                                            Buffers: shared hit=1661 read=18549
+                                            ->  Merge Join  (cost=24618.07..24620.33 rows=131 width=16) (actual time=25.518..26.055 rows=5714 loops=3)
+                                                  Merge Cond: (web_sales.ws_web_page_sk = web_page.wp_web_page_sk)
+                                                  Buffers: shared hit=1661 read=18549
+                                                  ->  Sort  (cost=24613.70..24614.03 rows=131 width=16) (actual time=25.491..25.657 rows=5714 loops=3)
+                                                        Sort Key: web_sales.ws_web_page_sk
+                                                        Sort Method: quicksort  Memory: 527kB
+                                                        Buffers: shared hit=1657 read=18547
+                                                        Worker 0:  Sort Method: quicksort  Memory: 419kB
+                                                        Worker 1:  Sort Method: quicksort  Memory: 424kB
+                                                        ->  Parallel Hash Join  (cost=2049.79..24609.09 rows=131 width=16) (actual time=4.385..25.037 rows=5716 loops=3)
+                                                              Hash Cond: (web_sales.ws_sold_date_sk = date_dim_4.d_date_sk)
+                                                              Buffers: shared hit=1649 read=18547
+                                                              ->  Parallel Seq Scan on web_sales  (cost=0.00..21772.43 rows=299743 width=20) (actual time=0.007..11.483 rows=239795 loops=3)
+                                                                    Buffers: shared hit=228 read=18547
+                                                              ->  Parallel Hash  (cost=2049.55..2049.55 rows=19 width=4) (actual time=0.782..0.782 rows=10 loops=3)
+                                                                    Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                                    Buffers: shared hit=1405
+                                                                    ->  Parallel Seq Scan on date_dim date_dim_4  (cost=0.00..2049.55 rows=19 width=4) (actual time=1.148..2.330 rows=31 loops=1)
+                                                                          Filter: ((d_date >= '2001-08-18'::date) AND (d_date <= '2001-09-17'::date))
+                                                                          Rows Removed by Filter: 73018
+                                                                          Buffers: shared hit=1405
+                                                  ->  Sort  (cost=4.37..4.52 rows=60 width=4) (actual time=0.017..0.019 rows=59 loops=3)
+                                                        Sort Key: web_page.wp_web_page_sk
+                                                        Sort Method: quicksort  Memory: 25kB
+                                                        Buffers: shared hit=4 read=2
+                                                        Worker 0:  Sort Method: quicksort  Memory: 25kB
+                                                        Worker 1:  Sort Method: quicksort  Memory: 25kB
+                                                        ->  Seq Scan on web_page  (cost=0.00..2.60 rows=60 width=4) (actual time=0.008..0.012 rows=60 loops=3)
+                                                              Buffers: shared hit=4 read=2
+                          ->  Finalize GroupAggregate  (cost=4649.28..4652.78 rows=29 width=68) (actual time=12.845..13.051 rows=40 loops=1)
+                                Group Key: web_page_1.wp_web_page_sk
+                                Buffers: shared hit=11137 read=1
+                                ->  Gather Merge  (cost=4649.28..4652.13 rows=17 width=68) (actual time=12.837..13.026 rows=60 loops=1)
+                                      Workers Planned: 1
+                                      Workers Launched: 1
+                                      Buffers: shared hit=11137 read=1
+                                      ->  Partial GroupAggregate  (cost=3649.27..3650.21 rows=17 width=68) (actual time=9.167..9.259 rows=30 loops=2)
+                                            Group Key: web_page_1.wp_web_page_sk
+                                            Buffers: shared hit=11137 read=1
+                                            ->  Merge Join  (cost=3649.27..3649.83 rows=17 width=16) (actual time=9.158..9.213 rows=521 loops=2)
+                                                  Merge Cond: (web_returns.wr_web_page_sk = web_page_1.wp_web_page_sk)
+                                                  Buffers: shared hit=11137 read=1
+                                                  ->  Sort  (cost=3644.90..3644.95 rows=18 width=16) (actual time=9.140..9.155 rows=522 loops=2)
+                                                        Sort Key: web_returns.wr_web_page_sk
+                                                        Sort Method: quicksort  Memory: 96kB
+                                                        Buffers: shared hit=11133 read=1
+                                                        Worker 0:  Sort Method: quicksort  Memory: 26kB
+                                                        ->  Nested Loop  (cost=0.30..3644.52 rows=18 width=16) (actual time=2.481..9.087 rows=532 loops=2)
+                                                              Buffers: shared hit=11129 read=1
+                                                              ->  Parallel Seq Scan on web_returns  (cost=0.00..1750.14 rows=42214 width=20) (actual time=0.002..1.412 rows=35882 loops=2)
+                                                                    Buffers: shared hit=1328
+                                                              ->  Memoize  (cost=0.30..0.41 rows=1 width=4) (actual time=0.000..0.000 rows=0 loops=71763)
+                                                                    Cache Key: web_returns.wr_returned_date_sk
+                                                                    Cache Mode: logical
+                                                                    Hits: 67814  Misses: 2113  Evictions: 0  Overflows: 0  Memory Usage: 142kB
+                                                                    Buffers: shared hit=9801 read=1
+                                                                    Worker 0:  Hits: 680  Misses: 1156  Evictions: 0  Overflows: 0  Memory Usage: 78kB
+                                                                    ->  Index Scan using date_dim_pkey on date_dim date_dim_5  (cost=0.29..0.40 rows=1 width=4) (actual time=0.000..0.000 rows=0 loops=3269)
+                                                                          Index Cond: (d_date_sk = web_returns.wr_returned_date_sk)
+                                                                          Filter: ((d_date >= '2001-08-18'::date) AND (d_date <= '2001-09-17'::date))
+                                                                          Rows Removed by Filter: 1
+                                                                          Buffers: shared hit=9801 read=1
+                                                  ->  Sort  (cost=4.37..4.52 rows=60 width=4) (actual time=0.011..0.013 rows=59 loops=2)
+                                                        Sort Key: web_page_1.wp_web_page_sk
+                                                        Sort Method: quicksort  Memory: 25kB
+                                                        Buffers: shared hit=4
+                                                        Worker 0:  Sort Method: quicksort  Memory: 25kB
+                                                        ->  Seq Scan on web_page web_page_1  (cost=0.00..2.60 rows=60 width=4) (actual time=0.004..0.008 rows=60 loops=2)
+                                                              Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=352 read=9
+Planning Time: 0.725 ms
+JIT:
+  Functions: 319
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 5.464 ms, Inlining 0.000 ms, Optimization 3.092 ms, Emission 65.180 ms, Total 73.735 ms
+Execution Time: 293.404 ms

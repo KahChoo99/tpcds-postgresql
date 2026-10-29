@@ -1,0 +1,50 @@
+SET
+Sort  (cost=70199.08..70199.98 rows=360 width=291) (actual time=93.963..94.136 rows=2552 loops=1)
+  Sort Key: item.i_category, item.i_class, item.i_item_id, item.i_item_desc, ((((sum(store_sales.ss_ext_sales_price)) * '100'::numeric) / sum((sum(store_sales.ss_ext_sales_price))) OVER (?)))
+  Sort Method: quicksort  Memory: 789kB
+  Buffers: shared hit=83868 read=47497
+  ->  WindowAgg  (cost=70175.69..70183.79 rows=360 width=291) (actual time=90.496..91.419 rows=2552 loops=1)
+        Buffers: shared hit=83868 read=47497
+        ->  Sort  (cost=70175.69..70176.59 rows=360 width=259) (actual time=90.482..90.664 rows=2552 loops=1)
+              Sort Key: item.i_class
+              Sort Method: quicksort  Memory: 756kB
+              Buffers: shared hit=83868 read=47497
+              ->  Finalize GroupAggregate  (cost=70111.53..70160.40 rows=360 width=259) (actual time=86.379..89.788 rows=2552 loops=1)
+                    Group Key: item.i_item_id, item.i_item_desc, item.i_category, item.i_class, item.i_current_price
+                    Buffers: shared hit=83868 read=47497
+                    ->  Gather Merge  (cost=70111.53..70150.65 rows=300 width=259) (actual time=86.373..88.473 rows=4977 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=83868 read=47497
+                          ->  Partial GroupAggregate  (cost=69111.50..69116.00 rows=150 width=259) (actual time=85.337..86.165 rows=1659 loops=3)
+                                Group Key: item.i_item_id, item.i_item_desc, item.i_category, item.i_class, item.i_current_price
+                                Buffers: shared hit=83868 read=47497
+                                ->  Sort  (cost=69111.50..69111.88 rows=150 width=233) (actual time=85.330..85.418 rows=2602 loops=3)
+                                      Sort Key: item.i_item_id, item.i_item_desc, item.i_category, item.i_class, item.i_current_price
+                                      Sort Method: quicksort  Memory: 781kB
+                                      Buffers: shared hit=83868 read=47497
+                                      Worker 0:  Sort Method: quicksort  Memory: 783kB
+                                      Worker 1:  Sort Method: quicksort  Memory: 737kB
+                                      ->  Nested Loop  (cost=2050.08..69106.08 rows=150 width=233) (actual time=1.397..82.870 rows=2602 loops=3)
+                                            Buffers: shared hit=83824 read=47497
+                                            ->  Parallel Hash Join  (cost=2049.79..68950.19 rows=502 width=10) (actual time=1.378..75.097 rows=8682 loops=3)
+                                                  Hash Cond: (store_sales.ss_sold_date_sk = date_dim.d_date_sk)
+                                                  Buffers: shared hit=5684 read=47497
+                                                  ->  Parallel Seq Scan on store_sales  (cost=0.00..63749.76 rows=1200176 width=14) (actual time=0.012..40.774 rows=960135 loops=3)
+                                                        Buffers: shared hit=4251 read=47497
+                                                  ->  Parallel Hash  (cost=2049.55..2049.55 rows=19 width=4) (actual time=1.268..1.268 rows=10 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                        Buffers: shared hit=1405
+                                                        ->  Parallel Seq Scan on date_dim  (cost=0.00..2049.55 rows=19 width=4) (actual time=1.041..1.247 rows=10 loops=3)
+                                                              Filter: ((d_date >= '2001-02-06'::date) AND (d_date <= '2001-03-08'::date))
+                                                              Rows Removed by Filter: 24339
+                                                              Buffers: shared hit=1405
+                                            ->  Index Scan using item_pkey on item  (cost=0.29..0.31 rows=1 width=231) (actual time=0.001..0.001 rows=0 loops=26046)
+                                                  Index Cond: (i_item_sk = store_sales.ss_item_sk)
+                                                  Filter: (i_category = ANY ('{Shoes,Books,Home}'::bpchar[]))
+                                                  Rows Removed by Filter: 1
+                                                  Buffers: shared hit=78140
+Planning:
+  Buffers: shared hit=335
+Planning Time: 0.368 ms
+Execution Time: 94.343 ms

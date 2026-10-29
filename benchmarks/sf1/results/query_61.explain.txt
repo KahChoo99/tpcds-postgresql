@@ -1,0 +1,104 @@
+Limit  (cost=138874.70..138874.71 rows=1 width=96) (actual time=54.531..55.820 rows=1 loops=1)
+  Buffers: shared hit=10 read=5
+  ->  Sort  (cost=138874.70..138874.71 rows=1 width=96) (actual time=35.409..36.698 rows=1 loops=1)
+        Sort Key: (sum(store_sales.ss_ext_sales_price)), (sum(store_sales_1.ss_ext_sales_price))
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=10 read=5
+        ->  Nested Loop  (cost=138874.65..138874.69 rows=1 width=96) (actual time=35.390..36.678 rows=1 loops=1)
+              Buffers: shared hit=7 read=5
+              ->  Finalize Aggregate  (cost=69304.24..69304.25 rows=1 width=32) (actual time=18.756..18.803 rows=1 loops=1)
+                    Buffers: shared hit=2 read=4
+                    ->  Gather  (cost=69304.02..69304.23 rows=2 width=32) (actual time=0.258..18.790 rows=3 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=2 read=4
+                          ->  Partial Aggregate  (cost=68304.02..68304.03 rows=1 width=32) (actual time=7.089..7.091 rows=1 loops=3)
+                                Buffers: shared hit=2 read=4
+                                ->  Nested Loop  (cost=26.91..68304.01 rows=1 width=6) (actual time=7.086..7.087 rows=0 loops=3)
+                                      Buffers: shared hit=2 read=4
+                                      ->  Nested Loop  (cost=26.62..68303.65 rows=1 width=10) (actual time=7.085..7.087 rows=0 loops=3)
+                                            Buffers: shared hit=2 read=4
+                                            ->  Nested Loop  (cost=26.33..68303.33 rows=1 width=10) (actual time=7.085..7.087 rows=0 loops=3)
+                                                  Buffers: shared hit=2 read=4
+                                                  ->  Nested Loop  (cost=26.04..68301.79 rows=5 width=14) (actual time=7.085..7.086 rows=0 loops=3)
+                                                        Buffers: shared hit=2 read=4
+                                                        ->  Hash Join  (cost=25.74..67363.90 rows=14383 width=18) (actual time=7.085..7.086 rows=0 loops=3)
+                                                              Hash Cond: (store_sales.ss_promo_sk = promotion.p_promo_sk)
+                                                              Buffers: shared hit=2 read=4
+                                                              ->  Hash Join  (cost=10.51..67272.55 rows=28614 width=22) (actual time=7.085..7.085 rows=0 loops=3)
+                                                                    Hash Cond: (store_sales.ss_store_sk = store.s_store_sk)
+                                                                    Buffers: shared hit=2 read=4
+                                                                    ->  Parallel Seq Scan on store_sales  (cost=0.00..63793.35 rows=1200135 width=26) (actual time=0.007..0.007 rows=1 loops=3)
+                                                                          Buffers: shared read=3
+                                                                    ->  Hash  (cost=10.50..10.50 rows=1 width=4) (actual time=7.074..7.074 rows=0 loops=3)
+                                                                          Buckets: 1024  Batches: 1  Memory Usage: 8kB
+                                                                          Buffers: shared hit=2 read=1
+                                                                          ->  Seq Scan on store  (cost=0.00..10.50 rows=1 width=4) (actual time=7.074..7.074 rows=0 loops=3)
+                                                                                Filter: (s_gmt_offset = '-7'::numeric)
+                                                                                Rows Removed by Filter: 12
+                                                                                Buffers: shared hit=2 read=1
+                                                              ->  Hash  (cost=13.25..13.25 rows=158 width=4) (never executed)
+                                                                    ->  Seq Scan on promotion  (cost=0.00..13.25 rows=158 width=4) (never executed)
+                                                                          Filter: ((p_channel_dmail = 'Y'::bpchar) OR (p_channel_email = 'Y'::bpchar) OR (p_channel_tv = 'Y'::bpchar))
+                                                        ->  Memoize  (cost=0.30..0.33 rows=1 width=4) (never executed)
+                                                              Cache Key: store_sales.ss_sold_date_sk
+                                                              Cache Mode: logical
+                                                              ->  Index Scan using date_dim_pkey on date_dim  (cost=0.29..0.32 rows=1 width=4) (never executed)
+                                                                    Index Cond: (d_date_sk = store_sales.ss_sold_date_sk)
+                                                                    Filter: ((d_year = 2000) AND (d_moy = 11))
+                                                  ->  Index Scan using item_pkey on item  (cost=0.29..0.31 rows=1 width=4) (never executed)
+                                                        Index Cond: (i_item_sk = store_sales.ss_item_sk)
+                                                        Filter: (i_category = 'Books'::bpchar)
+                                            ->  Index Scan using customer_pkey on customer  (cost=0.29..0.31 rows=1 width=8) (never executed)
+                                                  Index Cond: (c_customer_sk = store_sales.ss_customer_sk)
+                                      ->  Index Scan using customer_address_pkey on customer_address  (cost=0.29..0.36 rows=1 width=4) (never executed)
+                                            Index Cond: (ca_address_sk = customer.c_current_addr_sk)
+                                            Filter: (ca_gmt_offset = '-7'::numeric)
+              ->  Aggregate  (cost=69570.42..69570.43 rows=1 width=32) (actual time=16.630..17.872 rows=1 loops=1)
+                    Buffers: shared hit=5 read=1
+                    ->  Gather  (cost=1011.68..69570.41 rows=1 width=6) (actual time=16.619..17.860 rows=0 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=5 read=1
+                          ->  Nested Loop  (cost=11.68..68570.31 rows=1 width=6) (actual time=5.950..5.952 rows=0 loops=3)
+                                Buffers: shared hit=5 read=1
+                                ->  Nested Loop  (cost=11.39..68569.95 rows=1 width=10) (actual time=5.950..5.951 rows=0 loops=3)
+                                      Buffers: shared hit=5 read=1
+                                      ->  Nested Loop  (cost=11.10..68569.64 rows=1 width=10) (actual time=5.950..5.951 rows=0 loops=3)
+                                            Buffers: shared hit=5 read=1
+                                            ->  Nested Loop  (cost=10.81..68566.23 rows=11 width=14) (actual time=5.950..5.950 rows=0 loops=3)
+                                                  Buffers: shared hit=5 read=1
+                                                  ->  Hash Join  (cost=10.51..67272.55 rows=28614 width=18) (actual time=5.949..5.950 rows=0 loops=3)
+                                                        Hash Cond: (store_sales_1.ss_store_sk = store_1.s_store_sk)
+                                                        Buffers: shared hit=5 read=1
+                                                        ->  Parallel Seq Scan on store_sales store_sales_1  (cost=0.00..63793.35 rows=1200135 width=22) (actual time=0.005..0.005 rows=1 loops=3)
+                                                              Buffers: shared hit=2 read=1
+                                                        ->  Hash  (cost=10.50..10.50 rows=1 width=4) (actual time=5.939..5.939 rows=0 loops=3)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 8kB
+                                                              Buffers: shared hit=3
+                                                              ->  Seq Scan on store store_1  (cost=0.00..10.50 rows=1 width=4) (actual time=5.939..5.939 rows=0 loops=3)
+                                                                    Filter: (s_gmt_offset = '-7'::numeric)
+                                                                    Rows Removed by Filter: 12
+                                                                    Buffers: shared hit=3
+                                                  ->  Memoize  (cost=0.30..0.33 rows=1 width=4) (never executed)
+                                                        Cache Key: store_sales_1.ss_sold_date_sk
+                                                        Cache Mode: logical
+                                                        ->  Index Scan using date_dim_pkey on date_dim date_dim_1  (cost=0.29..0.32 rows=1 width=4) (never executed)
+                                                              Index Cond: (d_date_sk = store_sales_1.ss_sold_date_sk)
+                                                              Filter: ((d_year = 2000) AND (d_moy = 11))
+                                            ->  Index Scan using item_pkey on item item_1  (cost=0.29..0.31 rows=1 width=4) (never executed)
+                                                  Index Cond: (i_item_sk = store_sales_1.ss_item_sk)
+                                                  Filter: (i_category = 'Books'::bpchar)
+                                      ->  Index Scan using customer_pkey on customer customer_1  (cost=0.29..0.31 rows=1 width=8) (never executed)
+                                            Index Cond: (c_customer_sk = store_sales_1.ss_customer_sk)
+                                ->  Index Scan using customer_address_pkey on customer_address customer_address_1  (cost=0.29..0.36 rows=1 width=4) (never executed)
+                                      Index Cond: (ca_address_sk = customer_1.c_current_addr_sk)
+                                      Filter: (ca_gmt_offset = '-7'::numeric)
+Planning:
+  Buffers: shared hit=372 read=71
+Planning Time: 1.284 ms
+JIT:
+  Functions: 279
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 4.564 ms, Inlining 0.000 ms, Optimization 2.580 ms, Emission 55.549 ms, Total 62.694 ms
+Execution Time: 62.942 ms

@@ -1,0 +1,50 @@
+SET
+Limit  (cost=9423.19..9423.42 rows=1 width=125) (actual time=16.446..18.777 rows=6 loops=1)
+  Buffers: shared hit=27764 read=7719
+  ->  GroupAggregate  (cost=9423.19..9423.42 rows=1 width=125) (actual time=16.445..18.776 rows=6 loops=1)
+        Group Key: store.s_store_name, store.s_company_id, store.s_street_number, store.s_street_name, store.s_street_type, store.s_suite_number, store.s_city, store.s_county, store.s_state, store.s_zip
+        Buffers: shared hit=27764 read=7719
+        ->  Nested Loop  (cost=9423.19..9423.33 rows=1 width=93) (actual time=16.063..18.185 rows=3023 loops=1)
+              Buffers: shared hit=27764 read=7719
+              ->  Gather Merge  (cost=9422.90..9423.02 rows=1 width=93) (actual time=16.046..17.109 rows=3057 loops=1)
+                    Workers Planned: 2
+                    Workers Launched: 2
+                    Buffers: shared hit=21717 read=7719
+                    ->  Sort  (cost=8422.87..8422.88 rows=1 width=93) (actual time=15.116..15.143 rows=1019 loops=3)
+                          Sort Key: store.s_store_name, store.s_company_id, store.s_street_number, store.s_street_name, store.s_street_type, store.s_suite_number, store.s_city, store.s_county, store.s_state, store.s_zip
+                          Sort Method: quicksort  Memory: 145kB
+                          Buffers: shared hit=21717 read=7719
+                          Worker 0:  Sort Method: quicksort  Memory: 175kB
+                          Worker 1:  Sort Method: quicksort  Memory: 148kB
+                          ->  Nested Loop  (cost=2050.34..8422.86 rows=1 width=93) (actual time=1.735..14.602 rows=1019 loops=3)
+                                Buffers: shared hit=21673 read=7719
+                                ->  Nested Loop  (cost=2050.20..8422.71 rows=1 width=12) (actual time=1.728..14.070 rows=1041 loops=3)
+                                      Buffers: shared hit=15557 read=7719
+                                      ->  Parallel Hash Join  (cost=2049.78..8357.24 rows=49 width=16) (actual time=1.712..9.324 rows=1415 loops=3)
+                                            Hash Cond: (store_returns.sr_returned_date_sk = d2.d_date_sk)
+                                            Buffers: shared hit=226 read=6068
+                                            ->  Parallel Seq Scan on store_returns  (cost=0.00..5992.98 rows=119798 width=16) (actual time=0.005..4.196 rows=95838 loops=3)
+                                                  Buffers: shared hit=96 read=4699
+                                            ->  Parallel Hash  (cost=2049.55..2049.55 rows=18 width=4) (actual time=1.610..1.611 rows=10 loops=3)
+                                                  Buckets: 1024  Batches: 1  Memory Usage: 72kB
+                                                  Buffers: shared hit=36 read=1369
+                                                  ->  Parallel Seq Scan on date_dim d2  (cost=0.00..2049.55 rows=18 width=4) (actual time=1.053..1.582 rows=10 loops=3)
+                                                        Filter: ((d_year = 1998) AND (d_moy = 10))
+                                                        Rows Removed by Filter: 24339
+                                                        Buffers: shared hit=36 read=1369
+                                      ->  Index Scan using store_sales_pkey on store_sales  (cost=0.43..1.33 rows=1 width=20) (actual time=0.003..0.003 rows=1 loops=4245)
+                                            Index Cond: ((ss_item_sk = store_returns.sr_item_sk) AND (ss_ticket_number = store_returns.sr_ticket_number))
+                                            Filter: (store_returns.sr_customer_sk = ss_customer_sk)
+                                            Rows Removed by Filter: 0
+                                            Buffers: shared hit=15331 read=1651
+                                ->  Index Scan using store_pkey on store  (cost=0.14..0.15 rows=1 width=89) (actual time=0.000..0.000 rows=1 loops=3124)
+                                      Index Cond: (s_store_sk = store_sales.ss_store_sk)
+                                      Buffers: shared hit=6116
+              ->  Index Only Scan using date_dim_pkey on date_dim d1  (cost=0.29..0.31 rows=1 width=4) (actual time=0.000..0.000 rows=1 loops=3057)
+                    Index Cond: (d_date_sk = store_sales.ss_sold_date_sk)
+                    Heap Fetches: 0
+                    Buffers: shared hit=6047
+Planning:
+  Buffers: shared hit=258 read=6
+Planning Time: 0.551 ms
+Execution Time: 18.846 ms

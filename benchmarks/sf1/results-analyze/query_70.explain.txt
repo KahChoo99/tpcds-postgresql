@@ -1,0 +1,102 @@
+Limit  (cost=142552.03..142552.04 rows=3 width=129) (actual time=428.520..430.491 rows=3 loops=1)
+  Buffers: shared hit=13673 read=92968, temp read=3771 written=3786
+  ->  Sort  (cost=142552.03..142552.04 rows=3 width=129) (actual time=415.252..417.223 rows=3 loops=1)
+        Sort Key: ((GROUPING(store.s_state) + GROUPING(store.s_county))) DESC, (CASE WHEN (((GROUPING(store.s_state) + GROUPING(store.s_county))) = 0) THEN store.s_state ELSE NULL::bpchar END), (rank() OVER (?))
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=13673 read=92968, temp read=3771 written=3786
+        ->  WindowAgg  (cost=142551.87..142552.01 rows=3 width=129) (actual time=415.237..417.210 rows=3 loops=1)
+              Buffers: shared hit=13667 read=92968, temp read=3771 written=3786
+              ->  Sort  (cost=142551.87..142551.88 rows=3 width=97) (actual time=415.232..417.203 rows=3 loops=1)
+                    Sort Key: ((GROUPING(store.s_state) + GROUPING(store.s_county))), (CASE WHEN (GROUPING(store.s_county) = 0) THEN store.s_state ELSE NULL::bpchar END), (sum(store_sales.ss_net_profit)) DESC
+                    Sort Method: quicksort  Memory: 25kB
+                    Buffers: shared hit=13667 read=92968, temp read=3771 written=3786
+                    ->  GroupAggregate  (cost=140698.03..142551.85 rows=3 width=97) (actual time=415.225..417.196 rows=3 loops=1)
+                          Group Key: store.s_state, store.s_county
+                          Group Key: store.s_state
+                          Group Key: ()
+                          Buffers: shared hit=13664 read=92968, temp read=3771 written=3786
+                          ->  Merge Join  (cost=140698.03..142449.88 rows=13583 width=27) (actual time=291.903..372.392 rows=533544 loops=1)
+                                Merge Cond: (store.s_state = store_1.s_state)
+                                Buffers: shared hit=13664 read=92968, temp read=3771 written=3786
+                                ->  Gather Merge  (cost=70327.65..71909.61 rows=13583 width=27) (actual time=138.187..184.870 rows=533544 loops=1)
+                                      Workers Planned: 2
+                                      Workers Launched: 2
+                                      Buffers: shared hit=6810 read=46532, temp read=2472 written=2481
+                                      ->  Sort  (cost=69327.62..69341.77 rows=5660 width=27) (actual time=133.077..145.064 rows=177848 loops=3)
+                                            Sort Key: store.s_state, store.s_county
+                                            Sort Method: external merge  Disk: 6864kB
+                                            Buffers: shared hit=6810 read=46532, temp read=2472 written=2481
+                                            Worker 0:  Sort Method: external merge  Disk: 6496kB
+                                            Worker 1:  Sort Method: external merge  Disk: 6416kB
+                                            ->  Hash Join  (cost=2053.60..68974.82 rows=5660 width=27) (actual time=4.895..116.093 rows=177848 loops=3)
+                                                  Hash Cond: (store_sales.ss_store_sk = store.s_store_sk)
+                                                  Buffers: shared hit=6682 read=46532
+                                                  ->  Parallel Hash Join  (cost=2052.33..68952.73 rows=5932 width=10) (actual time=1.153..99.298 rows=182103 loops=3)
+                                                        Hash Cond: (store_sales.ss_sold_date_sk = d1.d_date_sk)
+                                                        Buffers: shared hit=6621 read=46532
+                                                        ->  Parallel Seq Scan on store_sales  (cost=0.00..63749.76 rows=1200176 width=14) (actual time=0.009..40.995 rows=960135 loops=3)
+                                                              Buffers: shared hit=5216 read=46532
+                                                        ->  Parallel Hash  (cost=2049.55..2049.55 rows=222 width=4) (actual time=1.098..1.099 rows=122 loops=3)
+                                                              Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                              Buffers: shared hit=1405
+                                                              ->  Parallel Seq Scan on date_dim d1  (cost=0.00..2049.55 rows=222 width=4) (actual time=1.640..3.260 rows=365 loops=1)
+                                                                    Filter: ((d_month_seq >= 1212) AND (d_month_seq <= 1223))
+                                                                    Rows Removed by Filter: 72684
+                                                                    Buffers: shared hit=1405
+                                                  ->  Hash  (cost=1.12..1.12 rows=12 width=25) (actual time=3.725..3.725 rows=12 loops=3)
+                                                        Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                        Buffers: shared hit=3
+                                                        ->  Seq Scan on store  (cost=0.00..1.12 rows=12 width=25) (actual time=3.718..3.720 rows=12 loops=3)
+                                                              Buffers: shared hit=3
+                                ->  WindowAgg  (cost=70370.38..70370.46 rows=2 width=43) (actual time=153.700..153.798 rows=1 loops=1)
+                                      Run Condition: (rank() OVER (?) <= 5)
+                                      Buffers: shared hit=6854 read=46436, temp read=1299 written=1305
+                                      ->  Incremental Sort  (cost=70370.38..70370.42 rows=2 width=35) (actual time=153.695..153.792 rows=1 loops=1)
+                                            Sort Key: store_1.s_state, (sum(store_sales_1.ss_net_profit)) DESC
+                                            Presorted Key: store_1.s_state
+                                            Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 25kB  Peak Memory: 25kB
+                                            Buffers: shared hit=6854 read=46436, temp read=1299 written=1305
+                                            ->  Finalize GroupAggregate  (cost=70327.65..70370.37 rows=1 width=35) (actual time=153.687..153.785 rows=1 loops=1)
+                                                  Group Key: store_1.s_state
+                                                  Buffers: shared hit=6854 read=46436, temp read=1299 written=1305
+                                                  ->  Gather Merge  (cost=70327.65..70370.34 rows=2 width=35) (actual time=153.680..153.777 rows=3 loops=1)
+                                                        Workers Planned: 2
+                                                        Workers Launched: 2
+                                                        Buffers: shared hit=6854 read=46436, temp read=1299 written=1305
+                                                        ->  Partial GroupAggregate  (cost=69327.62..69370.09 rows=1 width=35) (actual time=147.177..147.179 rows=1 loops=3)
+                                                              Group Key: store_1.s_state
+                                                              Buffers: shared hit=6854 read=46436, temp read=1299 written=1305
+                                                              ->  Sort  (cost=69327.62..69341.77 rows=5660 width=9) (actual time=129.040..136.428 rows=177848 loops=3)
+                                                                    Sort Key: store_1.s_state
+                                                                    Sort Method: external merge  Disk: 3736kB
+                                                                    Buffers: shared hit=6854 read=46436, temp read=1299 written=1305
+                                                                    Worker 0:  Sort Method: external merge  Disk: 3296kB
+                                                                    Worker 1:  Sort Method: external merge  Disk: 3360kB
+                                                                    ->  Hash Join  (cost=2053.60..68974.82 rows=5660 width=9) (actual time=4.952..116.456 rows=177848 loops=3)
+                                                                          Hash Cond: (store_sales_1.ss_store_sk = store_1.s_store_sk)
+                                                                          Buffers: shared hit=6742 read=46436
+                                                                          ->  Parallel Hash Join  (cost=2052.33..68952.73 rows=5932 width=10) (actual time=0.878..99.873 rows=182103 loops=3)
+                                                                                Hash Cond: (store_sales_1.ss_sold_date_sk = date_dim.d_date_sk)
+                                                                                Buffers: shared hit=6717 read=46436
+                                                                                ->  Parallel Seq Scan on store_sales store_sales_1  (cost=0.00..63749.76 rows=1200176 width=14) (actual time=0.008..41.038 rows=960135 loops=3)
+                                                                                      Buffers: shared hit=5312 read=46436
+                                                                                ->  Parallel Hash  (cost=2049.55..2049.55 rows=222 width=4) (actual time=0.820..0.820 rows=122 loops=3)
+                                                                                      Buckets: 1024  Batches: 1  Memory Usage: 40kB
+                                                                                      Buffers: shared hit=1405
+                                                                                      ->  Parallel Seq Scan on date_dim  (cost=0.00..2049.55 rows=222 width=4) (actual time=1.218..2.422 rows=365 loops=1)
+                                                                                            Filter: ((d_month_seq >= 1212) AND (d_month_seq <= 1223))
+                                                                                            Rows Removed by Filter: 72684
+                                                                                            Buffers: shared hit=1405
+                                                                          ->  Hash  (cost=1.12..1.12 rows=12 width=7) (actual time=4.063..4.063 rows=12 loops=3)
+                                                                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                                                Buffers: shared hit=3
+                                                                                ->  Seq Scan on store store_1  (cost=0.00..1.12 rows=12 width=7) (actual time=4.056..4.058 rows=12 loops=3)
+                                                                                      Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=213 read=3
+Planning Time: 0.371 ms
+JIT:
+  Functions: 155
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 2.750 ms, Inlining 0.000 ms, Optimization 1.671 ms, Emission 34.986 ms, Total 39.407 ms
+Execution Time: 437.832 ms
