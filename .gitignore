@@ -34,4 +34,6 @@ logs/
 # /benchmarks
 
 notebook.ipynb
+tests/
+plots/
 

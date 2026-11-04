@@ -1,0 +1,13 @@
+scale_factor,scenario,sum_seconds,successful_queries,timeout_queries,unresolved_queries
+1,original,1526.109,97,2,0
+1,optimized,23.511000000000003,99,0,0
+1,optimized_indexes,19.058999999999997,99,0,0
+2,original,1630.4219999999998,98,1,0
+2,optimized,58.388000000000005,99,0,0
+2,optimized_indexes,49.172,99,0,0
+5,original,3393.2946666666667,96,3,0
+5,optimized,180.15999999999997,99,0,0
+5,optimized_indexes,168.477,99,0,0
+10,original,4606.088999999999,95,4,0
+10,optimized,536.6730000000001,99,0,0
+10,optimized_indexes,492.30899999999997,99,0,0
