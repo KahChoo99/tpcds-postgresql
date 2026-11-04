@@ -1,0 +1,5 @@
+SF,# Faster,# Slower,Time saved (s),Time added (s),Net change (s),"Saved, % of faster queries' time","Added, % of slower queries' time","Saved, % of total suite time","Added, % of total suite time","Net, % of total suite time"
+SF1,53,32,6.139,1.687,4.452,41.449,21.282,26.111,7.175,18.936
+SF2,59,38,15.011,5.795,9.216,41.129,26.552,25.709,9.925,15.784
+SF5,50,49,32.812,21.129,11.683,47.968,18.906,18.213,11.728,6.485
+SF10,51,48,138.027,93.663,44.364,38.757,51.88,25.719,17.453,8.266
