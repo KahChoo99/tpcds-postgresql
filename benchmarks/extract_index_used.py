@@ -1,11 +1,5 @@
 
 #!/usr/bin/env python3
-"""
-command : python3 your_script_name.py \
-  --input benchmarks/sf2/results_optimization_index/exec_time_details.csv \
-  --output benchmarks/sf2/results_optimization_index/results_with_indexes.csv \
-  --plans benchmarks/sf2/results_optimization_index/plans
-"""
 
 import argparse
 import csv
