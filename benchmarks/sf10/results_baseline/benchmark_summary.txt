@@ -1,18 +1,18 @@
 Database: tpcds_sf10
 Method: plain execution via psql \timing (no EXPLAIN)
-Started UTC: 2026-10-26T09:31:12.150176+00:00
-Finished UTC: 2026-10-27T00:43:39.751465+00:00
-Runs requested: 3, completed for every query: 3
+Started UTC: 2026-10-26T00:14:46.052756+00:00
+Finished UTC: 2026-10-26T08:19:00.765126+00:00
+Runs requested: 1, completed for every query: 1
 Run order: whole suite repeated
-Session settings applied: ['work_mem=256MB', 'hash_mem_multiplier=2', 'max_parallel_workers_per_gather=4', 'effective_cache_size=10GB', 'random_page_cost=1.1', 'jit=off']
+Session settings applied: ['work_mem=256MB']
 Per-query settings: none
-Statement timeout (ms): 600000
+Statement timeout (ms): off
 Queries: 99
-Fully successful queries: 95
-Queries with errors or not completed: ['Q01', 'Q04', 'Q06', 'Q74']
-Time spent per run number (s): [4561.0, 4097.8, 3978.5]
-Total benchmark wall time (min): 210.633
-Sum of average query times (s): 2206.569
+Fully successful queries: 99
+Queries with errors or not completed: none
+Time spent per run number (s): [29054.3]
+Total benchmark wall time (min): 484.242
+Sum of average query times (s): 29048.767
 
 Server info:
 version=PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit

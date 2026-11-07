@@ -1,0 +1,37 @@
+scenario,database,when,parameter,expected,effective,source,context,pending_restart,matches
+baseline,tpcds_sf1_load_baseline_run4,before,effective_cache_size,10GB,10GB,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,before,jit,off,off,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,before,max_parallel_workers_per_gather,4,4,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,before,random_page_cost,1.1,1.1,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,before,work_mem,524288kB,512MB,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,before,shared_buffers,record actual value; unchanged,4GB,configuration file,postmaster,False,recorded
+baseline,tpcds_sf1_load_baseline_run4,after,effective_cache_size,10GB,10GB,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,after,jit,off,off,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,after,max_parallel_workers_per_gather,4,4,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,after,random_page_cost,1.1,1.1,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,after,work_mem,524288kB,512MB,database,user,False,True
+baseline,tpcds_sf1_load_baseline_run4,after,shared_buffers,record actual value; unchanged,4GB,configuration file,postmaster,False,recorded
+indexed_14,tpcds_sf1_load_indexed14_run4,before,effective_cache_size,10GB,10GB,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,before,jit,off,off,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,before,max_parallel_workers_per_gather,4,4,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,before,random_page_cost,1.1,1.1,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,before,work_mem,524288kB,512MB,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,before,shared_buffers,record actual value; unchanged,4GB,configuration file,postmaster,False,recorded
+indexed_14,tpcds_sf1_load_indexed14_run4,after,effective_cache_size,10GB,10GB,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,after,jit,off,off,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,after,max_parallel_workers_per_gather,4,4,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,after,random_page_cost,1.1,1.1,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,after,work_mem,524288kB,512MB,database,user,False,True
+indexed_14,tpcds_sf1_load_indexed14_run4,after,shared_buffers,record actual value; unchanged,4GB,configuration file,postmaster,False,recorded
+clustered_8,tpcds_sf1_load_clustered8_run4,before,effective_cache_size,10GB,10GB,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,before,jit,off,off,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,before,max_parallel_workers_per_gather,4,4,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,before,random_page_cost,1.1,1.1,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,before,work_mem,524288kB,512MB,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,before,shared_buffers,record actual value; unchanged,4GB,configuration file,postmaster,False,recorded
+clustered_8,tpcds_sf1_load_clustered8_run4,after,effective_cache_size,10GB,10GB,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,after,jit,off,off,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,after,max_parallel_workers_per_gather,4,4,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,after,random_page_cost,1.1,1.1,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,after,work_mem,524288kB,512MB,database,user,False,True
+clustered_8,tpcds_sf1_load_clustered8_run4,after,shared_buffers,record actual value; unchanged,4GB,configuration file,postmaster,False,recorded
