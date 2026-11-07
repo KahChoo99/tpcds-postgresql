@@ -90,12 +90,42 @@ Run this in the VS Code terminal to Start the tools container
 ```bash
 docker exec -it tpcds-tools bash
 ```
-Then Inside the tools container, run the command below to generate data
+Inside the tools container, run:
+```bash
+for sf in 1 2 5 10; do
+  mkdir -p /benchmarks/sf${sf}/{data,queries,results}
+done
+```
+This creates the following directory structure:
 
+
+```text
+benchmarks/
+├── sf1/
+│   ├── data/
+│   ├── queries/
+│   └── results/
+├── sf2/
+│   ├── data/
+│   ├── queries/
+│   └── results/
+├── sf5/
+│   ├── data/
+│   ├── queries/
+│   └── results/
+└── sf10/
+    ├── data/
+    ├── queries/
+    └── results/
+```
+
+Navigate to the TPC-DS tools directory
 ```bash
 cd /tpcds/tools
-mkdir -p /benchmarks/sf2/data
+```
+Run the following command for different scale factors separately to generate the datasets.
 
+```bash
 ./dsdgen \
   -SCALE 2 \
   -DIR /benchmarks/sf2/data \

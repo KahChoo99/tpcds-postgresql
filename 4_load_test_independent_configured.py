@@ -5,7 +5,7 @@ For each scale factor, creates three separate databases and measures:
 
   baseline    : CREATE TABLE + COPY 24 .dat files + ANALYZE
   indexed_14  : CREATE TABLE + COPY + CREATE 14 indexes + ANALYZE
-  clustered_4 : CREATE TABLE + COPY + CREATE 4 indexes + CLUSTER 4 tables + ANALYZE
+  clustered_8 : CREATE TABLE + COPY + CREATE 8 indexes + CLUSTER 4 tables + ANALYZE
 
 The LOAD timer begins immediately before schema creation and stops immediately
 following ANALYZE.  CREATE DATABASE and dsdgen are NOT timed; dsdgen is not
@@ -13,14 +13,14 @@ run at all.  Each database receives its own independent COPY of the data.
 
 Run from the repository root on your Mac:
 
-  caffeinate -i python3 4_load_test_independent_configured_fixed.py --sf 2 --run-id run1 \
+  caffeinate -i python3 4_load_test_independent_configured_final.py --sf 2 --run-id run1 \
     --indexes-sql indexes_nonclustered_14.sql \
-    --clustered-indexes-sql indexes_clustered_4.sql \
+    --clustered-indexes-sql indexes_clustered_8.sql \
     --cluster-sql cluster_four_tables.sql
 
 Before each load, applies and verifies the SAME five PostgreSQL database
 session defaults via ALTER DATABASE SET.  The script records the active
-shared_buffers setting, but does not require or modify a fixed value.
+shared_buffers value is read and recorded as found; no fixed value is required or changed.
 It verifies PostgreSQL version and does not restart the server.
 Verifies effective settings from separate connections both before and after the
 load, and checks ANALYZE status for all 24 tables. If settings differ, FAILS
@@ -52,13 +52,13 @@ TABLES = (
     "store_sales", "time_dim", "warehouse", "web_page", "web_returns",
     "web_sales", "web_site",
 )
-SCENARIOS = ("baseline", "indexed_14", "clustered_4")
+SCENARIOS = ("baseline", "indexed_14", "clustered_8")
 
 # Requested configuration (same effective values in ALL three DBs).
 # ALTER DATABASE SET controls new connections to one DB; it cannot configure
 # shared_buffers or PostgreSQL server version. shared_buffers is only recorded.
 DB_SETTINGS = {
-    "effective_cache_size": "15728648kB",  # use EXACT user-supplied kB
+    "effective_cache_size": "10GB",       # match the previous benchmark command
     "jit": "off",
     "max_parallel_workers_per_gather": "4",
     "random_page_cost": "1.1",
@@ -69,9 +69,27 @@ MEMORY_SETTINGS = frozenset(("effective_cache_size", "shared_buffers", "work_mem
 ALL_SETTINGS = tuple(DB_SETTINGS) + ("shared_buffers",)
 
 
+def size_to_bytes(value: str) -> int:
+    """Convert PostgreSQL size text (e.g. 10GB or 524288kB) to bytes."""
+    match = re.fullmatch(r"\s*(\d+(?:\.\d+)?)\s*(B|kB|MB|GB|TB)\s*",
+                         value, re.IGNORECASE)
+    if not match:
+        raise ValueError(f"Unsupported PostgreSQL size value: {value!r}")
+    amount = float(match.group(1))
+    unit = match.group(2).lower()
+    multipliers = {
+        "b": 1,
+        "kb": 1024,
+        "mb": 1024 ** 2,
+        "gb": 1024 ** 3,
+        "tb": 1024 ** 4,
+    }
+    return int(amount * multipliers[unit])
+
+
 def expected_setting_value(name: str):
     if name in MEMORY_SETTINGS:
-        return int(DB_SETTINGS[name].removesuffix("kB")) * 1024
+        return size_to_bytes(DB_SETTINGS[name])
     if name == "max_parallel_workers_per_gather":
         return int(DB_SETTINGS[name])
     if name == "random_page_cost":
@@ -142,22 +160,27 @@ def validate_config(probe: dict, *, database: str, baseline_start: str | None = 
         if got is None:
             problems.append(f"Missing {name} from pg_settings")
             continue
-        # shared_buffers is server-wide: record its ACTUAL value and source.
-        # No hard-coded check against historical reports or changes to server.
+        # shared_buffers is server-wide: record the active value only.
+        # Do not enforce a historical target or modify the PostgreSQL server.
         if name == "shared_buffers":
-            rows.append({"parameter": name, "expected": "server setting (unchanged)",
-                         "effective": got.get("effective"), "source": got.get("source"),
-                         "context": got.get("context"),
-                         "pending_restart": got.get("pending_restart"),
-                         "matches": got.get("bytes") is not None})
-            if got.get("bytes") is None:
-                problems.append("Cannot read shared_buffers effective value")
+            observed = got.get("bytes")
+            if observed is None:
+                problems.append("Cannot read the effective shared_buffers value")
+            rows.append({
+                "parameter": name,
+                "expected": "record actual value; unchanged",
+                "effective": got.get("effective"),
+                "source": got.get("source"),
+                "context": got.get("context"),
+                "pending_restart": got.get("pending_restart"),
+                "matches": "recorded" if observed is not None else False,
+            })
             continue
         expected = expected_setting_value(name)
         if name in MEMORY_SETTINGS:
             observed = got.get("bytes")
             equal = observed is not None and int(observed) == expected
-            expected_print = f"{expected // 1024}kB"
+            expected_print = DB_SETTINGS[name]
         elif name == "jit":
             observed = got.get("effective", "").lower() in ("on", "true", "yes")
             equal = observed == expected
@@ -197,7 +220,7 @@ def install_db_defaults(container: str, user: str, db: str) -> None:
 
 
 def validate_server_only(probe: dict) -> None:
-    """Verify version and only RECORD existing shared_buffers; never change it."""
+    """Verify PostgreSQL version and read the actual shared_buffers value."""
     ver = str(probe.get("server_version", ""))
     if not (ver == EXPECTED_POSTGRES_VERSION or
             ver.startswith(EXPECTED_POSTGRES_VERSION + " ")):
@@ -207,6 +230,7 @@ def validate_server_only(probe: dict) -> None:
                 if r["name"] == "shared_buffers"), None)
     if row is None or row.get("bytes") is None:
         raise RuntimeError("Cannot read shared_buffers from pg_settings")
+    # Record the effective value and source; no fixed value is enforced.
 
 
 def check_analyze(container: str, user: str, db: str) -> dict:
@@ -306,23 +330,23 @@ def get_sql(path: Path, kind: str) -> list[tuple[str, str, str]]:
 
 
 def validate_sql(index14: list[tuple[str, str, str]],
-                 index4: list[tuple[str, str, str]],
+                 index8: list[tuple[str, str, str]],
                  clusters: list[tuple[str, str, str]]) -> None:
-    if len(index14) != 14 or len(index4) != 4 or len(clusters) != 4:
-        raise RuntimeError("Expected 14 non-clustered indexes, 4 clustered "
+    if len(index14) != 14 or len(index8) != 8 or len(clusters) != 4:
+        raise RuntimeError("Expected 14 non-clustered indexes, 8 clustered-scenario "
                            "indexes and 4 CLUSTER statements")
-    for group in (index14, index4):
+    for group in (index14, index8):
         names = [name for name, _, _ in group]
         if len(set(names)) != len(names):
             raise RuntimeError("Duplicate index names found")
         if any(table not in TABLES for _, table, _ in group):
             raise RuntimeError("An index references an unknown TPC-DS table")
-    by_name = {name: table for name, table, _ in index4}
+    by_name = {name: table for name, table, _ in index8}
     clustered_tables: set[str] = set()
     for name, table, _ in clusters:
         if by_name.get(name) != table:
             raise RuntimeError(f"Invalid CLUSTER: {table} USING {name} "
-                               "(must match a defined 4-index CREATE INDEX)")
+                               "(must match a defined 8-index CREATE INDEX)")
         if table in clustered_tables:
             raise RuntimeError(f"CLUSTER specified twice for {table}")
         clustered_tables.add(table)
@@ -396,6 +420,12 @@ def persist(report: dict, outdir: Path) -> None:
         writer.writeheader()
         writer.writerows(report["indexes"])
 
+    shared_buffers_actual = "unavailable"
+    for setting in report.get("server_preflight", {}).get("settings", []):
+        if setting.get("name") == "shared_buffers":
+            shared_buffers_actual = setting.get("effective", "unavailable")
+            break
+
     lines = [
         "TPC-DS PostgreSQL: independent fresh-database load tests",
         f"SF: {report['scale_factor']}, run ID: {report['run_id']}",
@@ -421,12 +451,12 @@ def persist(report: dict, outdir: Path) -> None:
         "because wall-clock includes driver/logging overhead between phases.",
         "Baseline retains only schema-created indexes (e.g. primary keys).",
         "Indexed scenario adds exactly 14 regular indexes.",
-        "Clustered scenario adds exactly 4 regular indexes and clusters 4 tables.",
+        "Clustered scenario adds exactly 8 regular indexes and clusters 4 tables.",
         "Indexed vs clustered comparisons also vary the index count.",
         "ANALYZE is executed independently on ALL 24 tables in EVERY scenario.",
         "Database session defaults set before timing and verified before + after:",
         *[f"  {name} = {value}" for name, value in DB_SETTINGS.items()],
-        "shared_buffers is recorded as found; it is not modified or compared to an expected value.",
+        f"shared_buffers = {shared_buffers_actual} (actual server value; recorded, not modified).",
         f"Server PostgreSQL version must equal {EXPECTED_POSTGRES_VERSION}.",
         "Effective values and their sources saved in config_verification.csv.",
         "Actual ANALYZE timestamps saved in analyze_verification.csv and load_results.json.",
@@ -469,7 +499,7 @@ def timed_sql(report: dict, logpath: Path, scenario: str, db: str,
 def load_scenario(args: argparse.Namespace, scenario: str, db: str,
                   container_dir: str, schema: bytes,
                   index14: list[tuple[str, str, str]],
-                  index4: list[tuple[str, str, str]],
+                  index8: list[tuple[str, str, str]],
                   clusters: list[tuple[str, str, str]],
                   report: dict, logpath: Path) -> None:
     """CREATE DATABASE happens outside load timer; fresh schema/COPY in timer."""
@@ -495,7 +525,7 @@ def load_scenario(args: argparse.Namespace, scenario: str, db: str,
         "load_start_at": None, "load_end_at": None,
     }
     report["scenarios"][scenario] = item
-    selected = index14 if scenario == "indexed_14" else (index4 if scenario == "clustered_4" else [])
+    selected = index14 if scenario == "indexed_14" else (index8 if scenario == "clustered_8" else [])
 
     # TLOAD is measured independently for each fresh DB from the start of DDL
     # through completion of ANALYZE.  No dsdgen, resets or other scenarios.
@@ -526,7 +556,7 @@ def load_scenario(args: argparse.Namespace, scenario: str, db: str,
                                       "index_name": index_name,
                                       "duration_s": report["steps"][-1]["duration_s"]})
 
-        if scenario == "clustered_4":
+        if scenario == "clustered_8":
             for index_name, table, sql in clusters:
                 before = time.perf_counter()
                 timed_sql(report, logpath, scenario, db, "cluster", table,
@@ -564,7 +594,7 @@ def load_scenario(args: argparse.Namespace, scenario: str, db: str,
 
         # Post-timer verification: confirm ONLY intended custom indexes and
         # CLUSTER markings, without changing database state.
-        all_manual_names = {x[0] for x in index14} | {x[0] for x in index4}
+        all_manual_names = {x[0] for x in index14} | {x[0] for x in index8}
         expected_manual = {x[0] for x in selected}
         actual = get_indexes(args.container, args.user, db)
         if (actual & all_manual_names) != expected_manual:
@@ -572,7 +602,7 @@ def load_scenario(args: argparse.Namespace, scenario: str, db: str,
                                f"expected={sorted(expected_manual)}, "
                                f"actual={sorted(actual & all_manual_names)}")
         expected_clustering = ({f"{table}:{name}" for name, table, _ in clusters}
-                               if scenario == "clustered_4" else set())
+                               if scenario == "clustered_8" else set())
         actual_clustering = get_clustered(args.container, args.user, db)
         if actual_clustering != expected_clustering:
             raise RuntimeError(f"Unexpected clustering state for {db}: "
@@ -602,7 +632,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--indexes-sql", type=Path,
                         default=Path("indexes_nonclustered_14.sql"))
     parser.add_argument("--clustered-indexes-sql", type=Path,
-                        default=Path("indexes_clustered_4.sql"))
+                        default=Path("indexes_clustered_8.sql"))
     parser.add_argument("--cluster-sql", type=Path,
                         default=Path("cluster_four_tables.sql"))
     parser.add_argument("--output-dir", type=Path,
@@ -621,7 +651,7 @@ def main() -> int:
     db_names = {
         "baseline": f"tpcds_sf{args.sf}_load_baseline_{args.run_id}",
         "indexed_14": f"tpcds_sf{args.sf}_load_indexed14_{args.run_id}",
-        "clustered_4": f"tpcds_sf{args.sf}_load_clustered4_{args.run_id}",
+        "clustered_8": f"tpcds_sf{args.sf}_load_clustered8_{args.run_id}",
     }
     if any(len(db.encode("utf-8")) > 63 for db in db_names.values()):
         raise SystemExit("Database names exceed PostgreSQL's 63-byte identifier limit; shorten --run-id")
@@ -637,7 +667,7 @@ def main() -> int:
         "started_at": now(), "finished_at": None,
         "database_names": db_names, "scenarios": {},
         "steps": [], "indexes": [], "config_checks": [], "error": None,
-        "requested_config": {**DB_SETTINGS, "shared_buffers": "leave server setting unchanged",
+        "requested_config": {**DB_SETTINGS, "shared_buffers": "record actual server value; do not modify",
                              "server_version": EXPECTED_POSTGRES_VERSION},
         "files": {"schema": str(args.schema), "data_dir": str(data_dir),
                   "indexes_sql": str(args.indexes_sql),
@@ -653,22 +683,22 @@ def main() -> int:
         if not schema.strip():
             raise RuntimeError("Schema is empty")
         index14 = get_sql(args.indexes_sql, "index")
-        index4 = get_sql(args.clustered_indexes_sql, "index")
+        index8 = get_sql(args.clustered_indexes_sql, "index")
         clusters = get_sql(args.cluster_sql, "cluster")
-        validate_sql(index14, index4, clusters)
+        validate_sql(index14, index8, clusters)
 
         running = run(["docker", "inspect", "--format", "{{.State.Running}}", args.container])
         if running.strip() != "true":
             raise RuntimeError(f"Docker container is not running: {args.container}")
 
-        # Check server version, read shared_buffers, and leave it unchanged.
-        # This does not enforce the value from any historical summary.
+        # Check server version and record shared_buffers without enforcing a value.
+        # This script never changes server-wide settings or restarts PostgreSQL.
         server_preflight = probe_config(args.container, args.user, "postgres")
         validate_server_only(server_preflight)
         report["server_preflight"] = server_preflight
         recorded = next(r for r in server_preflight["settings"] if r["name"] == "shared_buffers")
-        log_line(logpath, f"VERIFIED PostgreSQL version. Observed shared_buffers="
-                          f"{recorded['effective']} (not changed or enforced). "
+        log_line(logpath, f"VERIFIED PostgreSQL version; observed shared_buffers="
+                          f"{recorded['effective']} (recorded, not modified). "
                           "Per-database settings will be set on each fresh DB.")
 
         missing = [str(data_dir / f"{table}.dat") for table in TABLES
@@ -696,7 +726,7 @@ def main() -> int:
         log_line(logpath, "Preflight passed. Each scenario will load all 24 files into its OWN database.")
         for scenario in SCENARIOS:
             load_scenario(args, scenario, db_names[scenario], container_dir,
-                          schema, index14, index4, clusters, report, logpath)
+                          schema, index14, index8, clusters, report, logpath)
             persist(report, output_dir)
 
         report["status"] = "SUCCESS"

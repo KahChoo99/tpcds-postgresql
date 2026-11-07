@@ -1,0 +1,33 @@
+TPC-DS PostgreSQL: independent fresh-database load tests
+SF: 1, run ID: run3
+Status: FAILED
+Started: 2026-11-06T20:32:15.796+01:00
+Finished: 2026-11-06T20:32:15.962+01:00
+
+Scenario          Database                                  Measured TLOAD (s)
+--------------------------------------------------------------------------
+
+Each result is measured independently from a fresh empty database.
+CREATE DATABASE takes place BEFORE the load timer.
+Start timer: immediately before creating the 24 tables.
+Stop timer: immediately after the scenario's ANALYZE completes.
+dsdgen is neither run nor timed. COPY occurs separately in EACH database.
+The sum of phase times may differ slightly from wall-clock load time
+because wall-clock includes driver/logging overhead between phases.
+Baseline retains only schema-created indexes (e.g. primary keys).
+Indexed scenario adds exactly 18 regular indexes.
+Clustered scenario adds exactly 8 regular indexes and clusters 4 tables.
+Indexed vs clustered comparisons also vary the index count.
+ANALYZE is executed independently on ALL 24 tables in EVERY scenario.
+Database session defaults set before timing and verified before + after:
+  effective_cache_size = 10GB
+  jit = off
+  max_parallel_workers_per_gather = 4
+  random_page_cost = 1.1
+  work_mem = 524288kB
+shared_buffers must be 5GB; it is verified but not modified by this script.
+Server PostgreSQL version must equal 16.15.
+Effective values and their sources saved in config_verification.csv.
+Actual ANALYZE timestamps saved in analyze_verification.csv and load_results.json.
+This is an academic load-time comparison, not a certified TPC-DS result.
+Error: shared_buffers is 4GB (expected 5GB). Set it at the PostgreSQL server level and restart the container before running this load test. The script will not change it automatically.
