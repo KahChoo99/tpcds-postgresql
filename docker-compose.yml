@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: tpcds-postgres #main project container name
+    shm_size: '2gb'
+    environment:
+      POSTGRES_DB: tpcds
+      POSTGRES_USER: tpcds
+      POSTGRES_PASSWORD: tpcds
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./data-clean:/data:ro
+      - ./benchmarks:/benchmarks:ro
+  tpcds-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile.tpcds
+
+    container_name: tpcds-tools #for data generation and loading into postgres, or else
+
+    volumes:
+      - ./DSGen-software-code-4.0.0:/tpcds
+      - ./data:/data
+      - ./generated_queries:/generated_queries
+      - ./benchmarks:/benchmarks
+
+    command: sleep infinity
+
+volumes:
+  postgres_data:

@@ -1,0 +1,1 @@
+scenario,database,status,schema_s,copy_s,indexes_s,cluster_s,analyze_s,sum_phase_times_s,measured_total_s,tload_rounded_up_0_1_s,rows_loaded

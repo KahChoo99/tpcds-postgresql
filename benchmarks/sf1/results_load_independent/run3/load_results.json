@@ -1,0 +1,33 @@
+{
+  "status": "FAILED",
+  "scale_factor": 1,
+  "run_id": "run3",
+  "started_at": "2026-11-06T20:32:15.796+01:00",
+  "finished_at": "2026-11-06T20:32:15.962+01:00",
+  "database_names": {
+    "baseline": "tpcds_sf1_load_baseline_run3",
+    "indexed_14": "tpcds_sf1_load_indexed14_run3",
+    "clustered_8": "tpcds_sf1_load_clustered8_run3"
+  },
+  "scenarios": {},
+  "steps": [],
+  "indexes": [],
+  "config_checks": [],
+  "error": "shared_buffers is 4GB (expected 5GB). Set it at the PostgreSQL server level and restart the container before running this load test. The script will not change it automatically.",
+  "requested_config": {
+    "effective_cache_size": "10GB",
+    "jit": "off",
+    "max_parallel_workers_per_gather": "4",
+    "random_page_cost": "1.1",
+    "work_mem": "524288kB",
+    "shared_buffers": "5GB",
+    "server_version": "16.15"
+  },
+  "files": {
+    "schema": "DSGen-software-code-4.0.0/tools/tpcds.sql",
+    "data_dir": "benchmarks/sf1/data",
+    "indexes_sql": "indexes_nonclustered_14.sql",
+    "clustered_indexes_sql": "indexes_clustered_8.sql",
+    "cluster_sql": "cluster_four_tables.sql"
+  }
+}

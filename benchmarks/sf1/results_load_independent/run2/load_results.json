@@ -1,0 +1,1956 @@
+{
+  "status": "SUCCESS",
+  "scale_factor": 1,
+  "run_id": "run2",
+  "started_at": "2026-11-03T13:03:12.073+01:00",
+  "finished_at": "2026-11-03T13:04:39.893+01:00",
+  "database_names": {
+    "baseline": "tpcds_sf1_load_baseline_run2",
+    "indexed_14": "tpcds_sf1_load_indexed14_run2",
+    "clustered_4": "tpcds_sf1_load_clustered4_run2"
+  },
+  "scenarios": {
+    "baseline": {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "status": "SUCCESS",
+      "schema_s": 0.06879525003023446,
+      "copy_s": 22.040362375904806,
+      "indexes_s": 0.0,
+      "cluster_s": 0.0,
+      "analyze_s": 2.8750030420487747,
+      "rows_loaded": 19557375,
+      "load_start_at": "2026-11-03T13:03:13.339+01:00",
+      "load_end_at": "2026-11-03T13:03:38.324+01:00",
+      "measured_total_s": 24.984619,
+      "tload_rounded_up_0_1_s": 25.0,
+      "sum_phase_times_s": 24.984161,
+      "settings_verified_before_after": true,
+      "analyze_verification": {
+        "call_center": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.966859+00:00",
+          "last_autoanalyze": null
+        },
+        "catalog_page": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.244139+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:30.321412+00:00"
+        },
+        "catalog_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.538486+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:31.260971+00:00"
+        },
+        "catalog_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:38.068048+00:00",
+          "last_autoanalyze": null
+        },
+        "customer": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.122484+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:30.200068+00:00"
+        },
+        "customer_address": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.619695+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:21.760439+00:00"
+        },
+        "customer_demographics": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.683868+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:28.710736+00:00"
+        },
+        "date_dim": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.774989+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:29.196292+00:00"
+        },
+        "household_demographics": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.217613+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:30.223998+00:00"
+        },
+        "income_band": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.831294+00:00",
+          "last_autoanalyze": null
+        },
+        "inventory": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.438492+00:00",
+          "last_autoanalyze": null
+        },
+        "item": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.961821+00:00",
+          "last_autoanalyze": null
+        },
+        "promotion": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.220315+00:00",
+          "last_autoanalyze": null
+        },
+        "reason": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.831037+00:00",
+          "last_autoanalyze": null
+        },
+        "ship_mode": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.777772+00:00",
+          "last_autoanalyze": null
+        },
+        "store": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.964766+00:00",
+          "last_autoanalyze": null
+        },
+        "store_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.214979+00:00",
+          "last_autoanalyze": null
+        },
+        "store_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:38.288363+00:00",
+          "last_autoanalyze": null
+        },
+        "time_dim": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.830682+00:00",
+          "last_autoanalyze": null
+        },
+        "warehouse": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:35.77543+00:00",
+          "last_autoanalyze": null
+        },
+        "web_page": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.219314+00:00",
+          "last_autoanalyze": null
+        },
+        "web_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.626759+00:00",
+          "last_autoanalyze": null
+        },
+        "web_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.826373+00:00",
+          "last_autoanalyze": null
+        },
+        "web_site": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:03:36.122852+00:00",
+          "last_autoanalyze": null
+        }
+      },
+      "analyzed_tables_count": 24,
+      "database_size_bytes": 2476669975
+    },
+    "indexed_14": {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "status": "SUCCESS",
+      "schema_s": 0.06744358304422349,
+      "copy_s": 23.396620333427563,
+      "indexes_s": 2.782603085041046,
+      "cluster_s": 0.0,
+      "analyze_s": 1.8373276250204071,
+      "rows_loaded": 19557375,
+      "load_start_at": "2026-11-03T13:03:38.819+01:00",
+      "load_end_at": "2026-11-03T13:04:06.904+01:00",
+      "measured_total_s": 28.084529,
+      "tload_rounded_up_0_1_s": 28.1,
+      "sum_phase_times_s": 28.083995,
+      "settings_verified_before_after": true,
+      "analyze_verification": {
+        "call_center": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.697349+00:00",
+          "last_autoanalyze": null
+        },
+        "catalog_page": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.981742+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:44.345063+00:00"
+        },
+        "catalog_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:06.326462+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:44.804841+00:00"
+        },
+        "catalog_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:06.739725+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:56.57182+00:00"
+        },
+        "customer": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.855809+00:00",
+          "last_autoanalyze": "2026-11-03T12:03:44.303996+00:00"
+        },
+        "customer_address": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.281807+00:00",
+          "last_autoanalyze": null
+        },
+        "customer_demographics": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.406475+00:00",
+          "last_autoanalyze": null
+        },
+        "date_dim": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.498858+00:00",
+          "last_autoanalyze": null
+        },
+        "household_demographics": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.953311+00:00",
+          "last_autoanalyze": null
+        },
+        "income_band": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.560572+00:00",
+          "last_autoanalyze": null
+        },
+        "inventory": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:06.222904+00:00",
+          "last_autoanalyze": null
+        },
+        "item": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.696619+00:00",
+          "last_autoanalyze": null
+        },
+        "promotion": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.955901+00:00",
+          "last_autoanalyze": null
+        },
+        "reason": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.560414+00:00",
+          "last_autoanalyze": null
+        },
+        "ship_mode": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.499877+00:00",
+          "last_autoanalyze": null
+        },
+        "store": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.69707+00:00",
+          "last_autoanalyze": null
+        },
+        "store_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.948296+00:00",
+          "last_autoanalyze": null
+        },
+        "store_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:06.870231+00:00",
+          "last_autoanalyze": null
+        },
+        "time_dim": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.559727+00:00",
+          "last_autoanalyze": null
+        },
+        "warehouse": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.499647+00:00",
+          "last_autoanalyze": null
+        },
+        "web_page": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.954978+00:00",
+          "last_autoanalyze": null
+        },
+        "web_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:06.41812+00:00",
+          "last_autoanalyze": null
+        },
+        "web_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:06.576024+00:00",
+          "last_autoanalyze": null
+        },
+        "web_site": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:05.856405+00:00",
+          "last_autoanalyze": null
+        }
+      },
+      "analyzed_tables_count": 24,
+      "database_size_bytes": 2676784151
+    },
+    "clustered_4": {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "status": "SUCCESS",
+      "schema_s": 0.06457216700073332,
+      "copy_s": 23.63660775113385,
+      "indexes_s": 1.234786249930039,
+      "cluster_s": 5.107949292985722,
+      "analyze_s": 2.144852790981531,
+      "rows_loaded": 19557375,
+      "load_start_at": "2026-11-03T13:04:07.427+01:00",
+      "load_end_at": "2026-11-03T13:04:39.617+01:00",
+      "measured_total_s": 32.189318,
+      "tload_rounded_up_0_1_s": 32.2,
+      "sum_phase_times_s": 32.188768,
+      "settings_verified_before_after": true,
+      "analyze_verification": {
+        "call_center": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.194705+00:00",
+          "last_autoanalyze": null
+        },
+        "catalog_page": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.57683+00:00",
+          "last_autoanalyze": "2026-11-03T12:04:10.527115+00:00"
+        },
+        "catalog_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:39.277884+00:00",
+          "last_autoanalyze": "2026-11-03T12:04:10.981641+00:00"
+        },
+        "catalog_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:39.175761+00:00",
+          "last_autoanalyze": null
+        },
+        "customer": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.433768+00:00",
+          "last_autoanalyze": null
+        },
+        "customer_address": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:37.667735+00:00",
+          "last_autoanalyze": null
+        },
+        "customer_demographics": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:37.872754+00:00",
+          "last_autoanalyze": null
+        },
+        "date_dim": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:37.974609+00:00",
+          "last_autoanalyze": null
+        },
+        "household_demographics": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.548687+00:00",
+          "last_autoanalyze": null
+        },
+        "income_band": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.045562+00:00",
+          "last_autoanalyze": null
+        },
+        "inventory": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.883891+00:00",
+          "last_autoanalyze": null
+        },
+        "item": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.18956+00:00",
+          "last_autoanalyze": null
+        },
+        "promotion": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.55162+00:00",
+          "last_autoanalyze": null
+        },
+        "reason": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.045394+00:00",
+          "last_autoanalyze": null
+        },
+        "ship_mode": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:37.980005+00:00",
+          "last_autoanalyze": null
+        },
+        "store": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.192629+00:00",
+          "last_autoanalyze": null
+        },
+        "store_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.545597+00:00",
+          "last_autoanalyze": null
+        },
+        "store_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:39.582744+00:00",
+          "last_autoanalyze": null
+        },
+        "time_dim": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.042184+00:00",
+          "last_autoanalyze": null
+        },
+        "warehouse": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:37.979827+00:00",
+          "last_autoanalyze": null
+        },
+        "web_page": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.55065+00:00",
+          "last_autoanalyze": null
+        },
+        "web_returns": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.979098+00:00",
+          "last_autoanalyze": null
+        },
+        "web_sales": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:39.443043+00:00",
+          "last_autoanalyze": null
+        },
+        "web_site": {
+          "analyzed": true,
+          "last_analyze": "2026-11-03T12:04:38.437199+00:00",
+          "last_autoanalyze": null
+        }
+      },
+      "analyzed_tables_count": 24,
+      "database_size_bytes": 2519890967
+    }
+  },
+  "steps": [
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "schema",
+      "operation": "CREATE TABLE statements",
+      "duration_s": 0.068796,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "call_center",
+      "duration_s": 0.041043,
+      "rows_loaded": 6,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "catalog_page",
+      "duration_s": 0.054166,
+      "rows_loaded": 11718,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "catalog_returns",
+      "duration_s": 0.268701,
+      "rows_loaded": 144067,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "catalog_sales",
+      "duration_s": 3.136407,
+      "rows_loaded": 1441548,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "customer",
+      "duration_s": 0.172098,
+      "rows_loaded": 100000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "customer_address",
+      "duration_s": 0.099675,
+      "rows_loaded": 50000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "customer_demographics",
+      "duration_s": 1.211093,
+      "rows_loaded": 1920800,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "date_dim",
+      "duration_s": 0.140718,
+      "rows_loaded": 73049,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "household_demographics",
+      "duration_s": 0.055294,
+      "rows_loaded": 7200,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "income_band",
+      "duration_s": 0.047091,
+      "rows_loaded": 20,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "inventory",
+      "duration_s": 8.182903,
+      "rows_loaded": 11745000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "item",
+      "duration_s": 0.095385,
+      "rows_loaded": 18000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "promotion",
+      "duration_s": 0.050677,
+      "rows_loaded": 300,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "reason",
+      "duration_s": 0.046848,
+      "rows_loaded": 75,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "ship_mode",
+      "duration_s": 0.039414,
+      "rows_loaded": 20,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "store",
+      "duration_s": 0.039415,
+      "rows_loaded": 12,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "store_returns",
+      "duration_s": 0.477363,
+      "rows_loaded": 287514,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "store_sales",
+      "duration_s": 5.745189,
+      "rows_loaded": 2880404,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "time_dim",
+      "duration_s": 0.12059,
+      "rows_loaded": 86400,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "warehouse",
+      "duration_s": 0.050806,
+      "rows_loaded": 5,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "web_page",
+      "duration_s": 0.053198,
+      "rows_loaded": 60,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "web_returns",
+      "duration_s": 0.18462,
+      "rows_loaded": 71763,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "web_sales",
+      "duration_s": 1.661591,
+      "rows_loaded": 719384,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "copy",
+      "operation": "web_site",
+      "duration_s": 0.053463,
+      "rows_loaded": 30,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "phase": "analyze",
+      "operation": "ANALYZE",
+      "duration_s": 2.874524,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "schema",
+      "operation": "CREATE TABLE statements",
+      "duration_s": 0.067444,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "call_center",
+      "duration_s": 0.040496,
+      "rows_loaded": 6,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "catalog_page",
+      "duration_s": 0.050668,
+      "rows_loaded": 11718,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "catalog_returns",
+      "duration_s": 0.277546,
+      "rows_loaded": 144067,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "catalog_sales",
+      "duration_s": 4.204293,
+      "rows_loaded": 1441548,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "customer",
+      "duration_s": 0.247182,
+      "rows_loaded": 100000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "customer_address",
+      "duration_s": 0.11103,
+      "rows_loaded": 50000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "customer_demographics",
+      "duration_s": 1.214351,
+      "rows_loaded": 1920800,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "date_dim",
+      "duration_s": 0.139853,
+      "rows_loaded": 73049,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "household_demographics",
+      "duration_s": 0.055831,
+      "rows_loaded": 7200,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "income_band",
+      "duration_s": 0.042116,
+      "rows_loaded": 20,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "inventory",
+      "duration_s": 8.06456,
+      "rows_loaded": 11745000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "item",
+      "duration_s": 0.135445,
+      "rows_loaded": 18000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "promotion",
+      "duration_s": 0.043874,
+      "rows_loaded": 300,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "reason",
+      "duration_s": 0.04302,
+      "rows_loaded": 75,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "ship_mode",
+      "duration_s": 0.045304,
+      "rows_loaded": 20,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "store",
+      "duration_s": 0.063946,
+      "rows_loaded": 12,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "store_returns",
+      "duration_s": 0.520609,
+      "rows_loaded": 287514,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "store_sales",
+      "duration_s": 6.024641,
+      "rows_loaded": 2880404,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "time_dim",
+      "duration_s": 0.119442,
+      "rows_loaded": 86400,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "warehouse",
+      "duration_s": 0.043354,
+      "rows_loaded": 5,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "web_page",
+      "duration_s": 0.040505,
+      "rows_loaded": 60,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "web_returns",
+      "duration_s": 0.153493,
+      "rows_loaded": 71763,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "web_sales",
+      "duration_s": 1.653245,
+      "rows_loaded": 719384,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "copy",
+      "operation": "web_site",
+      "duration_s": 0.049673,
+      "rows_loaded": 30,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_catalog_sales_cs_sold_date_sk",
+      "duration_s": 0.246593,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_cs_date_customer",
+      "duration_s": 0.218321,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_catalog_returns_cr_returned_date_sk",
+      "duration_s": 0.066326,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_date_year_month",
+      "duration_s": 0.054238,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_date_year_date",
+      "duration_s": 0.053061,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_item_category_price",
+      "duration_s": 0.048634,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_item_i_manufact_id",
+      "duration_s": 0.044523,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_ss_date_customer",
+      "duration_s": 0.550069,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_store_sales_ss_customer_sk",
+      "duration_s": 0.341073,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_web_sales_ws_bill_customer_sk",
+      "duration_s": 0.154272,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_ws_date_customer",
+      "duration_s": 0.130612,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_ss_date_item",
+      "duration_s": 0.465342,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_cs_date_item",
+      "duration_s": 0.250317,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "index",
+      "operation": "idx_ws_date_item",
+      "duration_s": 0.152151,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "phase": "analyze",
+      "operation": "ANALYZE",
+      "duration_s": 1.836591,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "schema",
+      "operation": "CREATE TABLE statements",
+      "duration_s": 0.064573,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "call_center",
+      "duration_s": 0.039451,
+      "rows_loaded": 6,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "catalog_page",
+      "duration_s": 0.052775,
+      "rows_loaded": 11718,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "catalog_returns",
+      "duration_s": 0.273914,
+      "rows_loaded": 144067,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "catalog_sales",
+      "duration_s": 3.474877,
+      "rows_loaded": 1441548,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "customer",
+      "duration_s": 0.204609,
+      "rows_loaded": 100000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "customer_address",
+      "duration_s": 0.117838,
+      "rows_loaded": 50000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "customer_demographics",
+      "duration_s": 1.85028,
+      "rows_loaded": 1920800,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "date_dim",
+      "duration_s": 0.14573,
+      "rows_loaded": 73049,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "household_demographics",
+      "duration_s": 0.054002,
+      "rows_loaded": 7200,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "income_band",
+      "duration_s": 0.041858,
+      "rows_loaded": 20,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "inventory",
+      "duration_s": 8.42595,
+      "rows_loaded": 11745000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "item",
+      "duration_s": 0.111079,
+      "rows_loaded": 18000,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "promotion",
+      "duration_s": 0.054314,
+      "rows_loaded": 300,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "reason",
+      "duration_s": 0.046014,
+      "rows_loaded": 75,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "ship_mode",
+      "duration_s": 0.042869,
+      "rows_loaded": 20,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "store",
+      "duration_s": 0.039534,
+      "rows_loaded": 12,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "store_returns",
+      "duration_s": 0.519125,
+      "rows_loaded": 287514,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "store_sales",
+      "duration_s": 5.972385,
+      "rows_loaded": 2880404,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "time_dim",
+      "duration_s": 0.124345,
+      "rows_loaded": 86400,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "warehouse",
+      "duration_s": 0.048106,
+      "rows_loaded": 5,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "web_page",
+      "duration_s": 0.047394,
+      "rows_loaded": 60,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "web_returns",
+      "duration_s": 0.159327,
+      "rows_loaded": 71763,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "web_sales",
+      "duration_s": 1.726578,
+      "rows_loaded": 719384,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "copy",
+      "operation": "web_site",
+      "duration_s": 0.050061,
+      "rows_loaded": 30,
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "index",
+      "operation": "idx_catalog_sales_cs_sold_date_sk",
+      "duration_s": 0.277094,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "index",
+      "operation": "idx_catalog_returns_cr_returned_date_sk",
+      "duration_s": 0.076293,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "index",
+      "operation": "idx_ss_date_item",
+      "duration_s": 0.673352,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "index",
+      "operation": "idx_ws_date_item",
+      "duration_s": 0.20447,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "cluster",
+      "operation": "catalog_sales",
+      "duration_s": 1.26227,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "cluster",
+      "operation": "catalog_returns",
+      "duration_s": 0.204685,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "cluster",
+      "operation": "store_sales",
+      "duration_s": 2.887836,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "cluster",
+      "operation": "web_sales",
+      "duration_s": 0.750952,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "phase": "analyze",
+      "operation": "ANALYZE",
+      "duration_s": 2.144189,
+      "rows_loaded": "",
+      "status": "SUCCESS"
+    }
+  ],
+  "indexes": [
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_catalog_sales_cs_sold_date_sk",
+      "duration_s": 0.246593
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_cs_date_customer",
+      "duration_s": 0.218321
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_catalog_returns_cr_returned_date_sk",
+      "duration_s": 0.066326
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_date_year_month",
+      "duration_s": 0.054238
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_date_year_date",
+      "duration_s": 0.053061
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_item_category_price",
+      "duration_s": 0.048634
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_item_i_manufact_id",
+      "duration_s": 0.044523
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_ss_date_customer",
+      "duration_s": 0.550069
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_store_sales_ss_customer_sk",
+      "duration_s": 0.341073
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_web_sales_ws_bill_customer_sk",
+      "duration_s": 0.154272
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_ws_date_customer",
+      "duration_s": 0.130612
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_ss_date_item",
+      "duration_s": 0.465342
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_cs_date_item",
+      "duration_s": 0.250317
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "index_name": "idx_ws_date_item",
+      "duration_s": 0.152151
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "index_name": "idx_catalog_sales_cs_sold_date_sk",
+      "duration_s": 0.277094
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "index_name": "idx_catalog_returns_cr_returned_date_sk",
+      "duration_s": 0.076293
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "index_name": "idx_ss_date_item",
+      "duration_s": 0.673352
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "index_name": "idx_ws_date_item",
+      "duration_s": 0.20447
+    }
+  ],
+  "config_checks": [
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "before",
+      "parameter": "effective_cache_size",
+      "expected": "15728648kB",
+      "effective": "15728648kB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "before",
+      "parameter": "jit",
+      "expected": "off",
+      "effective": "off",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "before",
+      "parameter": "max_parallel_workers_per_gather",
+      "expected": "4",
+      "effective": "4",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "before",
+      "parameter": "random_page_cost",
+      "expected": "1.1",
+      "effective": "1.1",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "before",
+      "parameter": "work_mem",
+      "expected": "524288kB",
+      "effective": "512MB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "before",
+      "parameter": "shared_buffers",
+      "expected": "server setting (unchanged)",
+      "effective": "4GB",
+      "source": "configuration file",
+      "context": "postmaster",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "after",
+      "parameter": "effective_cache_size",
+      "expected": "15728648kB",
+      "effective": "15728648kB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "after",
+      "parameter": "jit",
+      "expected": "off",
+      "effective": "off",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "after",
+      "parameter": "max_parallel_workers_per_gather",
+      "expected": "4",
+      "effective": "4",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "after",
+      "parameter": "random_page_cost",
+      "expected": "1.1",
+      "effective": "1.1",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "after",
+      "parameter": "work_mem",
+      "expected": "524288kB",
+      "effective": "512MB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "baseline",
+      "database": "tpcds_sf1_load_baseline_run2",
+      "when": "after",
+      "parameter": "shared_buffers",
+      "expected": "server setting (unchanged)",
+      "effective": "4GB",
+      "source": "configuration file",
+      "context": "postmaster",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "before",
+      "parameter": "effective_cache_size",
+      "expected": "15728648kB",
+      "effective": "15728648kB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "before",
+      "parameter": "jit",
+      "expected": "off",
+      "effective": "off",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "before",
+      "parameter": "max_parallel_workers_per_gather",
+      "expected": "4",
+      "effective": "4",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "before",
+      "parameter": "random_page_cost",
+      "expected": "1.1",
+      "effective": "1.1",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "before",
+      "parameter": "work_mem",
+      "expected": "524288kB",
+      "effective": "512MB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "before",
+      "parameter": "shared_buffers",
+      "expected": "server setting (unchanged)",
+      "effective": "4GB",
+      "source": "configuration file",
+      "context": "postmaster",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "after",
+      "parameter": "effective_cache_size",
+      "expected": "15728648kB",
+      "effective": "15728648kB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "after",
+      "parameter": "jit",
+      "expected": "off",
+      "effective": "off",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "after",
+      "parameter": "max_parallel_workers_per_gather",
+      "expected": "4",
+      "effective": "4",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "after",
+      "parameter": "random_page_cost",
+      "expected": "1.1",
+      "effective": "1.1",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "after",
+      "parameter": "work_mem",
+      "expected": "524288kB",
+      "effective": "512MB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "indexed_14",
+      "database": "tpcds_sf1_load_indexed14_run2",
+      "when": "after",
+      "parameter": "shared_buffers",
+      "expected": "server setting (unchanged)",
+      "effective": "4GB",
+      "source": "configuration file",
+      "context": "postmaster",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "before",
+      "parameter": "effective_cache_size",
+      "expected": "15728648kB",
+      "effective": "15728648kB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "before",
+      "parameter": "jit",
+      "expected": "off",
+      "effective": "off",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "before",
+      "parameter": "max_parallel_workers_per_gather",
+      "expected": "4",
+      "effective": "4",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "before",
+      "parameter": "random_page_cost",
+      "expected": "1.1",
+      "effective": "1.1",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "before",
+      "parameter": "work_mem",
+      "expected": "524288kB",
+      "effective": "512MB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "before",
+      "parameter": "shared_buffers",
+      "expected": "server setting (unchanged)",
+      "effective": "4GB",
+      "source": "configuration file",
+      "context": "postmaster",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "after",
+      "parameter": "effective_cache_size",
+      "expected": "15728648kB",
+      "effective": "15728648kB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "after",
+      "parameter": "jit",
+      "expected": "off",
+      "effective": "off",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "after",
+      "parameter": "max_parallel_workers_per_gather",
+      "expected": "4",
+      "effective": "4",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "after",
+      "parameter": "random_page_cost",
+      "expected": "1.1",
+      "effective": "1.1",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "after",
+      "parameter": "work_mem",
+      "expected": "524288kB",
+      "effective": "512MB",
+      "source": "database",
+      "context": "user",
+      "pending_restart": false,
+      "matches": true
+    },
+    {
+      "scenario": "clustered_4",
+      "database": "tpcds_sf1_load_clustered4_run2",
+      "when": "after",
+      "parameter": "shared_buffers",
+      "expected": "server setting (unchanged)",
+      "effective": "4GB",
+      "source": "configuration file",
+      "context": "postmaster",
+      "pending_restart": false,
+      "matches": true
+    }
+  ],
+  "error": null,
+  "requested_config": {
+    "effective_cache_size": "15728648kB",
+    "jit": "off",
+    "max_parallel_workers_per_gather": "4",
+    "random_page_cost": "1.1",
+    "work_mem": "524288kB",
+    "shared_buffers": "leave server setting unchanged",
+    "server_version": "16.15"
+  },
+  "files": {
+    "schema": "DSGen-software-code-4.0.0/tools/tpcds.sql",
+    "data_dir": "benchmarks/sf1/data",
+    "indexes_sql": "indexes_nonclustered_14.sql",
+    "clustered_indexes_sql": "indexes_clustered_4.sql",
+    "cluster_sql": "cluster_four_tables.sql"
+  },
+  "server_preflight": {
+    "database": "postgres",
+    "server_version": "16.15 (Debian 16.15-1.pgdg13+2)",
+    "version": "PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "postmaster_started_at": "2026-11-03T11:40:55.195663+00:00",
+    "settings": [
+      {
+        "name": "effective_cache_size",
+        "effective": "12GB",
+        "bytes": 12884901888,
+        "source": "configuration file",
+        "context": "user",
+        "pending_restart": false
+      },
+      {
+        "name": "jit",
+        "effective": "off",
+        "bytes": null,
+        "source": "configuration file",
+        "context": "user",
+        "pending_restart": false
+      },
+      {
+        "name": "max_parallel_workers_per_gather",
+        "effective": "4",
+        "bytes": null,
+        "source": "configuration file",
+        "context": "user",
+        "pending_restart": false
+      },
+      {
+        "name": "random_page_cost",
+        "effective": "1.1",
+        "bytes": null,
+        "source": "configuration file",
+        "context": "user",
+        "pending_restart": false
+      },
+      {
+        "name": "shared_buffers",
+        "effective": "4GB",
+        "bytes": 4294967296,
+        "source": "configuration file",
+        "context": "postmaster",
+        "pending_restart": false
+      },
+      {
+        "name": "work_mem",
+        "effective": "1GB",
+        "bytes": 1073741824,
+        "source": "configuration file",
+        "context": "user",
+        "pending_restart": false
+      }
+    ]
+  }
+}
