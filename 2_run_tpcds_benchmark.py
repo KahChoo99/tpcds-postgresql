@@ -1,22 +1,3 @@
-"""
-TPC-DS query performance test on PostgreSQL in Docker. No extra installs.
-
-Two measurement modes:
-  default            plain execution, time from psql's \\timing
-                     (statement sent -> full result received)
-  --explain-analyze  runs EXPLAIN (ANALYZE, BUFFERS) and uses the server's
-                     "Execution Time"; the plan of every run is saved
-
-The whole suite is repeated for the number of runs given with -n / --runs
-(default 3). Input folder, output folder and database come from the command
-line.
-
-Session settings:
-  --set NAME=VALUE              applied to every query
-  --set-for Q1,Q2:NAME=VALUE    applied only to the listed queries, after the
-                                global --set values (so it overrides them),
-                                e.g. --set-for 4,11,74:enable_nestloop=off
-"""
 import argparse
 import csv
 import re
@@ -50,8 +31,7 @@ def find_query_files(input_dir, selection):
     if selection is not None:
         return ({n: files[n] for n in selection if n in files},
                 [n for n in selection if n not in files], [])
-    # "all" means queries 1-99. Anything else (e.g. query_0.sql, the combined
-    # stream file that dsqgen can create) is skipped so it is not run by accident.
+    # "all" means queries 1-99.
     skipped = [files[n].name for n in sorted(files) if not 1 <= n <= 99]
     return ({n: files[n] for n in sorted(files) if 1 <= n <= 99}, [], skipped)
 

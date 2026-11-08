@@ -1,34 +1,11 @@
 #!/usr/bin/env python3
-"""TPC-DS PostgreSQL load test: three INDEPENDENT fresh-database loads.
-
-For each scale factor, creates three separate databases and measures:
-
-  baseline    : CREATE TABLE + COPY 24 .dat files + ANALYZE
-  indexed_14  : CREATE TABLE + COPY + CREATE 14 indexes + ANALYZE
-  clustered_8 : CREATE TABLE + COPY + CREATE 8 indexes + CLUSTER 4 tables + ANALYZE
-
-The LOAD timer begins immediately before schema creation and stops immediately
-following ANALYZE.  CREATE DATABASE and dsdgen are NOT timed; dsdgen is not
-run at all.  Each database receives its own independent COPY of the data.
-
+"""
 Run from the repository root on your Mac:
 
   caffeinate -i python3 4_load_test_independent_configured_final.py --sf 2 --run-id run1 \
     --indexes-sql indexes_nonclustered_14.sql \
     --clustered-indexes-sql indexes_clustered_8.sql \
     --cluster-sql cluster_four_tables.sql
-
-Before each load, applies and verifies the SAME five PostgreSQL database
-session defaults via ALTER DATABASE SET.  The script records the active
-shared_buffers value is read and recorded as found; no fixed value is required or changed.
-It verifies PostgreSQL version and does not restart the server.
-Verifies effective settings from separate connections both before and after the
-load, and checks ANALYZE status for all 24 tables. If settings differ, FAILS
-rather than silently continuing with a mismatched experiment.
-
-Uses only Python standard library + Docker CLI and the repository's .dat/DDL.
-The output is an academic TPC-DS-inspired load comparison, not a certified TPC
-result: other TPC-DS validity, configuration and audit rules also apply.
 """
 from __future__ import annotations
 
@@ -54,15 +31,12 @@ TABLES = (
 )
 SCENARIOS = ("baseline", "indexed_14", "clustered_8")
 
-# Requested configuration (same effective values in ALL three DBs).
-# ALTER DATABASE SET controls new connections to one DB; it cannot configure
-# shared_buffers or PostgreSQL server version. shared_buffers is only recorded.
 DB_SETTINGS = {
-    "effective_cache_size": "10GB",       # match the previous benchmark command
+    "effective_cache_size": "10GB",      
     "jit": "off",
     "max_parallel_workers_per_gather": "4",
     "random_page_cost": "1.1",
-    "work_mem": "524288kB",           # 512 MiB per operation
+    "work_mem": "524288kB",        
 }
 EXPECTED_POSTGRES_VERSION = "16.15"
 MEMORY_SETTINGS = frozenset(("effective_cache_size", "shared_buffers", "work_mem"))
@@ -110,7 +84,6 @@ def parse_json_result(output: str, description: str) -> dict:
 
 
 def probe_config(container: str, user: str, database: str) -> dict:
-    """Probe ACTUAL effective values from a NEW PostgreSQL session."""
     names = ",".join("'" + name + "'" for name in ALL_SETTINGS)
     memory = ",".join("'" + name + "'" for name in sorted(MEMORY_SETTINGS))
     sql = f"""
@@ -139,7 +112,6 @@ def probe_config(container: str, user: str, database: str) -> dict:
 
 def validate_config(probe: dict, *, database: str, baseline_start: str | None = None,
                     require_db_source: bool = True) -> list[dict]:
-    """Validate values, sources, PostgreSQL version and no restart; FAIL closed."""
     if probe.get("database") != database:
         raise RuntimeError(f"Connected to wrong database: {probe.get('database')} != {database}")
     ver = str(probe.get("server_version", ""))
@@ -160,8 +132,6 @@ def validate_config(probe: dict, *, database: str, baseline_start: str | None = 
         if got is None:
             problems.append(f"Missing {name} from pg_settings")
             continue
-        # shared_buffers is server-wide: record the active value only.
-        # Do not enforce a historical target or modify the PostgreSQL server.
         if name == "shared_buffers":
             observed = got.get("bytes")
             if observed is None:
@@ -213,14 +183,12 @@ def validate_config(probe: dict, *, database: str, baseline_start: str | None = 
 
 
 def install_db_defaults(container: str, user: str, db: str) -> None:
-    """Set per-database defaults BEFORE timing; no server-global mutations."""
     for name, value in DB_SETTINGS.items():
         sql = f"ALTER DATABASE \"{db}\" SET {name} = '{value}';"
         run(psql(container, user, "postgres", sql))
 
 
 def validate_server_only(probe: dict) -> None:
-    """Verify PostgreSQL version and read the actual shared_buffers value."""
     ver = str(probe.get("server_version", ""))
     if not (ver == EXPECTED_POSTGRES_VERSION or
             ver.startswith(EXPECTED_POSTGRES_VERSION + " ")):
@@ -294,7 +262,6 @@ def log_line(logpath: Path, line: str) -> None:
 
 
 def get_sql(path: Path, kind: str) -> list[tuple[str, str, str]]:
-    """Return (operation_name, table, SQL), for the supplied simple SQL files."""
     if not path.is_file():
         raise RuntimeError(f"Cannot find {kind} SQL file: {path}")
     content = path.read_text(encoding="utf-8-sig")
@@ -502,7 +469,6 @@ def load_scenario(args: argparse.Namespace, scenario: str, db: str,
                   index8: list[tuple[str, str, str]],
                   clusters: list[tuple[str, str, str]],
                   report: dict, logpath: Path) -> None:
-    """CREATE DATABASE happens outside load timer; fresh schema/COPY in timer."""
     log_line(logpath, f"Creating fresh database {db} (not timed)")
     run(psql(args.container, args.user, "postgres", f'CREATE DATABASE "{db}";'))
     # Per-DB settings, as well as their verification, are done BEFORE TLOAD.
@@ -568,16 +534,13 @@ def load_scenario(args: argparse.Namespace, scenario: str, db: str,
                   psql(args.container, args.user, db, "ANALYZE;"))
         item["analyze_s"] += time.perf_counter() - before
 
-        # End timer before verification / reports / database-size queries.
         elapsed = time.perf_counter() - start
         item["load_end_at"] = now()
         item["measured_total_s"] = round(elapsed, 6)
         item["tload_rounded_up_0_1_s"] = roundup_tenth(elapsed)
-        # Phases are measured individually (slightly different from wall time).
         phases = ("schema_s", "copy_s", "indexes_s", "cluster_s", "analyze_s")
         item["sum_phase_times_s"] = round(sum(item[name] for name in phases), 6)
 
-        # Post-timer verification: separate NEW connection verifies effective
         # configuration again and checks that every table was analyzed.
         config_after = probe_config(args.container, args.user, db)
         after_rows = validate_config(config_after, database=db,
@@ -592,8 +555,6 @@ def load_scenario(args: argparse.Namespace, scenario: str, db: str,
         log_line(logpath, f"{scenario}: VERIFIED settings after load and "
                  f"ANALYZE on {item['analyzed_tables_count']} tables")
 
-        # Post-timer verification: confirm ONLY intended custom indexes and
-        # CLUSTER markings, without changing database state.
         all_manual_names = {x[0] for x in index14} | {x[0] for x in index8}
         expected_manual = {x[0] for x in selected}
         actual = get_indexes(args.container, args.user, db)
@@ -691,8 +652,6 @@ def main() -> int:
         if running.strip() != "true":
             raise RuntimeError(f"Docker container is not running: {args.container}")
 
-        # Check server version and record shared_buffers without enforcing a value.
-        # This script never changes server-wide settings or restarts PostgreSQL.
         server_preflight = probe_config(args.container, args.user, "postgres")
         validate_server_only(server_preflight)
         report["server_preflight"] = server_preflight
@@ -715,7 +674,6 @@ def main() -> int:
             run(["docker", "exec", "-u", "postgres", args.container,
                  "test", "-r", f"{container_dir}/{table}.dat"])
 
-        # SAFETY: check ALL THREE names before any database is created.
         for db in db_names.values():
             existing = run(psql(args.container, args.user, "postgres",
                                 f"SELECT 1 FROM pg_database WHERE datname='{db}';", raw=True))

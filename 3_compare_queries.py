@@ -1,20 +1,5 @@
-#!/usr/bin/env python3
 """
-Compare ORIGINAL vs OPTIMIZED TPC-DS queries on PostgreSQL.
-
-For every scale factor (each SF lives in its own database, e.g. tpcds_sf10) and
-every query that exists in BOTH the original and the optimized folder it:
-
-  1. runs both versions N times (interleaved: orig, opt, orig, opt, ...) and
-     records every execution time (psql \\timing),
-  2. compares the result sets of the two versions (exact string equality of every
-     value) and counts mismatching rows,
-  3. saves the EXPLAIN (or EXPLAIN ANALYZE) plan of both versions.
-
-Every execution is appended to runs.csv immediately and every finished query to summary.csv,
-so a crash or Ctrl-C never loses finished work; --resume skips finished (SF, query) pairs.
-
-Examples
+Example Commands
 --------
   python compare_benchmark.py --sf 1 2 10 -i benchmarks/sf{sf}/queries --optimized-dir benchmarks/sf{sf}/queries_opt
   python compare_benchmark.py --sf 1 -d tpcds_sf1 -i benchmarks/sf1/queries --optimized-dir benchmarks/sf1/queries_opt \\
@@ -22,16 +7,8 @@ Examples
       --set work_mem=256MB --set hash_mem_multiplier=2 --set max_parallel_workers_per_gather=4 \\
       --set effective_cache_size=10GB --set random_page_cost=1.1 --set jit=off \\
       --no-save-results 2>&1 | tee sf1_compare.log
-  python compare_benchmark.py --sf 10 --queries 4 11 -n 1 --plan analyze
   python compare_benchmark.py --run-id sf10_final --resume
 
-Output (results/<run-id>/)
---------------------------
-  summary.csv   one row per (sf, query): timings, speedup, match flag, mismatch counts, plan costs
-  runs.csv      one row per individual execution (long format, ideal for pandas / pivot tables)
-  plans/sf<SF>/q<NN>_original.txt, q<NN>_optimized.txt
-  mismatches/sf<SF>/q<NN>_only_in_original.csv, q<NN>_only_in_optimized.csv   (only if results differ)
-  config.json   settings used for the run
 """
 import argparse
 import csv
@@ -47,22 +24,21 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
-# ---------------------------------------------------------------- defaults
-# Change these here or override them on the command line.
-SCALE_FACTORS = [1, 2, 10]
-DB_TEMPLATE = "tpcds_sf{sf}"                       # database name per scale factor
+
+SCALE_FACTORS = [1, 2, 5, 10]
+DB_TEMPLATE = "tpcds_sf{sf}"                       
 PSQL_CMD = "docker exec -i tpcds-postgres psql -U tpcds"
 ORIGINAL_DIR = "queries/original"
 OPTIMIZED_DIR = "queries/optimized"
-RUNS = 3                                            # executions per query and version
-SETTINGS = {"work_mem": "256MB"}                    # session settings (--set NAME=VALUE)
-PLAN_MODE = "explain"                               # none | explain | analyze
-TIMEOUT_MS = 0                                      # per statement, 0 = no timeout
-ORDER = "query"                                     # query | suite
+RUNS = 3                                          
+SETTINGS = {"work_mem": "512MB"}                
+PLAN_MODE = "explain"                              
+TIMEOUT_MS = 0                                     
+ORDER = "query"                                    
 OUT_DIR = "results"
-MAX_MISMATCH_ROWS_SAVED = 1000                      # cap rows written to mismatch files
+MAX_MISMATCH_ROWS_SAVED = 1000                     
 
-NULL_MARK = "__NULL__"                              # distinguishes NULL from empty string
+NULL_MARK = "__NULL__"                            
 TIME_RE = re.compile(r"^Time: ([\d.]+) ms", re.M)
 KEY_RE = re.compile(r"(\d+)([ab])?(?![A-Za-z0-9])", re.I)
 VERSIONS = ("original", "optimized")
@@ -107,7 +83,6 @@ def wanted(key, selectors):
 
 
 def split_statements(sql):
-    """Split a query file on top-level ';' (ignores -- comments and 'quoted;strings')."""
     stmts, buf, i, n, in_str = [], [], 0, len(sql), False
     while i < n:
         c = sql[i]
@@ -163,7 +138,7 @@ def run_psql(psql_cmd, db, script):
 
 
 def execute(args, db, sql):
-    """Run a whole query file once. Returns {'ms', 'rows'} or {'error'}."""
+    #Run a whole query file once. Returns {'ms', 'rows'} or {'error'}.
     script = prelude(args.settings, args.statement_timeout_ms, "csv") + "\\timing on\n" + sql + "\n"
     rc, out, err, wall_ms = run_psql(args.psql_cmd, db, script)
     if rc != 0:
@@ -281,12 +256,11 @@ def finish_query(args, run_dir, sf, db, key, st):
     """Plans + result comparison + summary row, after all runs of a query are done."""
     sqls, times, rows, errors = st["sqls"], st["times"], st["rows"], st["errors"]
 
-    # plans
     plans = {}
     if args.plan != "none":
         for v in VERSIONS:
             if args.plan == "analyze" and v in errors:
-                continue                          # don't re-run something that already failed
+                continue
             plan = get_plan(args, db, sqls[v], args.plan)
             plan_path = run_dir / "plans" / f"sf{sf}" / f"q{key}_{v}.txt"
             plan_path.parent.mkdir(parents=True, exist_ok=True)
@@ -333,7 +307,6 @@ def finish_query(args, run_dir, sf, db, key, st):
     return summary
 
 
-# ---------------------------------------------------------------- main
 def parse_args():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sf", type=int, nargs="+", default=SCALE_FACTORS, help="scale factors (default: %(default)s)")
@@ -393,7 +366,7 @@ def log_runs(sf, key, r, run_rows):
 
 
 def main():
-    sys.stdout.reconfigure(line_buffering=True)      # so `| tee log` shows progress live
+    sys.stdout.reconfigure(line_buffering=True)     
     args = parse_args()
     run_dir = Path(args.out) / args.run_id
     run_dir.mkdir(parents=True, exist_ok=True)

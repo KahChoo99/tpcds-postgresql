@@ -1,5 +1,7 @@
 # TPC-DS PostgreSQL Benchmark 
 
+
+
 ## 1. Project Overview
 
 This project evaluates PostgreSQL performance using the TPC-DS 4.0.0 benchmark, PostgreSQL 16, and Docker Compose.
@@ -11,6 +13,9 @@ The workflow covers:
 3. Generating SQL queries using the PostgreSQL dialect.
 4. Splitting the generated SQL workload into individual queries.
 5. Executing queries and collecting performance measurements.
+6. Optimize slow queries and executing the optimized queries.
+7. Adding indexes to the database and executing the optimized queries.
+8. Creating indexes, physically clustering selected tables using their indexes, and re-executing the optimized queries to evaluate their performance.
 <!-- 6. Comparing query results against reference outputs.
 7. Extracting execution times and generating performance plots. -->
 
@@ -25,15 +30,15 @@ One Compose file starts two containers.
 
 | Container | Job | How you use it | 
 | --- | --- | --- |
-| `tpcds-postgres` (image `postgres:16`) | Database: create schema, load data, run queries | `docker exec tpcds-postgres psql ...` from the Mac |
+| `tpcds-postgres` (image `postgres:16`) | Database: create schema, load data, run queries | `docker exec -it tpcds-postgres bash` |
 | `tpcds-tools` (built from `Dockerfile.tpcds`) | Generator: `dsdgen` creates data, `dsqgen` creates queries | `docker exec -it tpcds-tools bash`, then work in `/tpcds/tools` | 
 
 Data flow:
 
-1. `dsdgen` (tools) writes `.dat` files to `/benchmarks/sf_i/data`.
-2. Postgres reads the same files with server-side `COPY` and fills `tpcds_sf_i`.
-3. `dsqgen` (tools) writes SQL to `/benchmarks/sf_i/queries`.
-4. Python scripts on the Mac split the SQL, run it through `docker exec`, and save timings in `benchmarks/sf_i/results`.
+1. `dsdgen` (tools) writes `.dat` files to `/benchmarks/sf{i}/data`.
+2. Postgres reads the same files with server-side `COPY` and fills `tpcds_sf{i}`.
+3. `dsqgen` (tools) writes SQL to `/benchmarks/sf{i}/queries`.
+4. 1_split_queries.py Python scripts split the single generated SQL to 99 separated queries, and save timings in `benchmarks/sf{i}/results`.
 
 ### 2.1. Benchmark directory structure
 
@@ -49,29 +54,47 @@ tpcds-postgresql/
 │   ├── sf1/
 │   │   ├── data/
 │   │   ├── queries/
-│   │   └── results/
+│   │   ├── optimized_queries/
+│   │   ├── results_baseline/
+│   │   ├── results_optimization/
+│   │   ├── results_optimization_index/
+│   │   └── results_clustered_indexes/
 │   ├── sf2/
 │   │   ├── data/
 │   │   ├── queries/
-│   │   └── results/
-│   ├── sf4/
+│   │   ├── optimized_queries/
+│   │   ├── results_baseline/
+│   │   ├── results_optimization/
+│   │   ├── results_optimization_index/
+│   │   └── results_clustered_indexes/
+│   ├── sf5/
 │   │   ├── data/
 │   │   ├── queries/
-│   │   └── results/
-│   └── sf7/
-│       ├── data/
-│       ├── queries/
-│       └── results/
-└── [project scripts and analysis files]
+│   │   ├── optimized_queries/
+│   │   ├── results_baseline/
+│   │   ├── results_optimization/
+│   │   ├── results_optimization_index/
+│   │   └── results_clustered_indexes/
+│   ├── sf10/
+│   │   ├── data/
+│   │   ├── queries/
+│   │   ├── optimized_queries/
+│   │   ├── results_baseline/
+│   │   ├── results_optimization/
+│   │   ├── results_optimization_index/
+│   │   └── results_clustered_indexes/
+└── [project scripts]
 ```
 
 The directories have the following purposes:
 
 - `data/`: Generated TPC-DS `.dat` files.
 - `queries/`: Generated SQL workload, including the combined query file and individual query files.
-- `results/`: Query execution outputs, plans, logs, and other benchmark artifacts.
+- `results_baseline/`: Execution results of the original queries on the baseline database.
+- `results_optimization/`: Execution results of the optimized queries on the baseline database.
+- `results_optimization_index/`: Execution results of the optimized queries on the indexed database.
+- `results_clustered_indexes/`: Execution results of the optimized queries on the database with selected tables clustered using indexes.
 
-The actual repository may contain additional scripts and files.
 
 ### 2.2. Docker volume mounts
 
@@ -93,30 +116,25 @@ docker exec -it tpcds-tools bash
 Inside the tools container, run:
 ```bash
 for sf in 1 2 5 10; do
-  mkdir -p /benchmarks/sf${sf}/{data,queries,results}
+  mkdir -p /benchmarks/sf${sf}/{data,queries}
 done
 ```
-This creates the following directory structure:
-
+This creates the following directory structure to store the generated data and the generated queries:
 
 ```text
 benchmarks/
 ├── sf1/
 │   ├── data/
-│   ├── queries/
-│   └── results/
+│   └── queries/
 ├── sf2/
 │   ├── data/
-│   ├── queries/
-│   └── results/
+│   └── queries/
 ├── sf5/
 │   ├── data/
-│   ├── queries/
-│   └── results/
+│   └── queries/
 └── sf10/
     ├── data/
-    ├── queries/
-    └── results/
+    └── queries/
 ```
 
 Navigate to the TPC-DS tools directory
@@ -150,7 +168,7 @@ For example, SF5 uses `-SCALE 5` and `/benchmarks/sf5/data`.
 
 ---
 
-## 4. Creating and Loading PostgreSQL Databases
+## 4. Creating PostgreSQL Databases and Loading data
 
 Each scale factor should use a separate PostgreSQL database. This prevents data from different experiments from being mixed and makes the results easier to reproduce.
 
@@ -419,9 +437,7 @@ case when grouping(i_category)+grouping(i_class) = 0 then i_category end,
 
 ### 6.2. Fixing the `_END not defined` Error
 
-During query generation, we also encountered the `_END not defined` error.
-
-To solve this issue without modifying the original `netezza.tpl`, we created a new dialect template named `postgresql.tpl`, based on `netezza.tpl`.
+During query generation, we also encountered the `_END not defined` error. Because the toolkit does not include a PostgreSQL template, we created `postgresql.tpl` from `netezza.tpl` and fixed syntax incompatibilities in date expressions, ORDER BY aliases, and column names.
 
 We added the following definition at the end of the new file:
 
@@ -472,6 +488,8 @@ The options specify the template directory, template list, scale factor, SQL dia
 
 The `-QUALIFY Y` option is important because it helps keep the generated queries in a consistent order matching the template list. This allows us to compare the same queries across different scale factors (SF1, SF2, SF5, and SF10) and analyze how their execution times change as the dataset size increases.
 
+this command generated all 99 queries in a signle `query_0.sql`.
+
 
 ### 6.4. Splitting the Combined SQL file
 
@@ -490,27 +508,26 @@ benchmarks/sf2/queries/
 run the command below in the tpcds-postgresl folder not it the docker containers
 
 ```bash
-python3 1_split_queries.py -i ./benchmarks/sf1/queries/query_0.sql -o ./benchmarks/sf1/queries
+python3 1_split_queries.py -i ./benchmarks/sf2/queries/query_0.sql -o ./benchmarks/sf2/queries
 ```
-now we expect to see 99 seperate `.sql` files for each query in the `./benchmarks/sf1/queries`
+now we expect to see 99 seperate `.sql` files for each query in the `./benchmarks/sf2/queries`
 
 ## 7. Running the TPC-DS Baseline Benchmark
 
 Run the following command from the **project root in the Mac terminal**:
 
 ```bash
-python3 2_run_benchmark.py \
+python3 2_run_tpcds_benchmark.py \
   -i benchmarks/sf2/queries \
   -o benchmarks/sf2/results_baseline \
   -d tpcds_sf2 \
   -n 3 \
-  --set work_mem=256MB \
+  --set work_mem=512MB \
   --set hash_mem_multiplier=2 \
   --set max_parallel_workers_per_gather=4 \
   --set effective_cache_size=10GB \
   --set random_page_cost=1.1 \
   --set jit=off \
-  --statement-timeout-ms 600000 \
   --no-save-results \
   --order suite \
   2>&1 | tee sf2_baseline.log
@@ -524,20 +541,20 @@ python3 2_run_benchmark.py \
 | `-o` | Directory where benchmark results will be saved. |
 | `-d tpcds_sf2` | PostgreSQL database containing the SF2 dataset. |
 | `-n 3` | Executes the complete benchmark three times. |
-| `--set work_mem=256MB` | Sets the memory available for individual query operations such as sorting and hashing. |
+| `--set work_mem=512MB` | Sets the memory available for individual query operations such as sorting and hashing. |
 | `--set hash_mem_multiplier=2` | Allows hash operations to use up to twice the `work_mem` limit. |
 | `--set max_parallel_workers_per_gather=4` | Allows up to four parallel workers for eligible query operations. |
 | `--set effective_cache_size=10GB` | Tells the query planner how much cache memory is estimated to be available. It does not allocate 10 GB of memory. |
 | `--set random_page_cost=1.1` | Sets the planner's estimated cost of random disk access. |
 | `--set jit=off` | Disables Just-In-Time compilation. |
-| `--statement-timeout-ms 600000` | Sets a 10-minute timeout for each SQL statement. |
 | `--no-save-results` | Avoids saving individual query result rows to reduce storage usage. |
 | `--order suite` | Runs the entire query suite once before starting the next iteration. |
 | `2>&1 \| tee sf2_baseline.log` | Displays the benchmark output in the terminal and saves it to a log file. |
 
-### 7.3. Benchmark Execution Method
+To store the results of running optimized queries on the baseline dataset and databases with indexes we used the same script but change the input `-i` and output `-o` paths.
 
-The benchmark uses **plain SQL execution with PostgreSQL's `psql \timing`**, rather than `EXPLAIN ANALYZE`.
+
+### 7.3. Benchmark Execution Method
 
 The script measures the execution time of each query and records it in seconds.
 
@@ -553,17 +570,6 @@ This approach allows us to observe query performance across repeated complete be
 
 Some TPC-DS query files contain multiple SQL statements. The script executes all statements in the file and sums their execution times to obtain the query's total execution time.
 
-### 7.4. Statement Timeout
-
-We set a maximum execution time of **10 minutes (600 seconds)** per SQL statement:
-
-```bash
---statement-timeout-ms 600000
-```
-
-If a statement exceeds this limit, PostgreSQL cancels its execution and the script records the attempt as failed.
-
-This prevents extremely slow queries from running indefinitely.
 
 ### 7.5. Benchmark Output Files
 
@@ -617,7 +623,7 @@ We first optimize the TPC-DS queries on **SF1** and then apply the same optimiza
 
 Since TPC-DS may generate different query parameters for different scale factors, we must verify that the optimized queries produce the same results as the original queries at each scale factor.
 
-## 8. The `compare_benchmark.py` script:
+## 8. The `3_compare_queries.py` script:
 - Executes both original and optimized queries on the same database.
 - Compares their result sets to verify correctness.
 - Measures execution times and calculates speedup.
@@ -628,7 +634,7 @@ Since TPC-DS may generate different query parameters for different scale factors
 Run from the project root:
 
 ```bash
-caffeinate -i python3 compare_benchmark.py \
+caffeinate -i python3 3_compare_queries.py \
   --sf 10 \
   -d tpcds_sf10 \
   -i benchmarks/sf10/queries \
@@ -636,7 +642,7 @@ caffeinate -i python3 compare_benchmark.py \
   -o benchmarks/sf10/results_compare \
   --run-id sf10_compare \
   -n 1 \
-  --set work_mem=256MB \
+  --set work_mem=512MB \
   --set hash_mem_multiplier=2 \
   --set max_parallel_workers_per_gather=4 \
   --set effective_cache_size=10GB \

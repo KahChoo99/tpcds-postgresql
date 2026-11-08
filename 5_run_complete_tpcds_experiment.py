@@ -65,9 +65,7 @@ EXPECTED_CLUSTERED = {
     "web_sales": "idx_ws_date_item",
 }
 
-# These are the exact six settings from the original benchmark command.
-# They are applied at PostgreSQL startup, as database defaults, and again
-# explicitly by 2_run_tpcds_benchmark.py before every measured query.
+
 SETTINGS = [
     "work_mem=512MB",
     "hash_mem_multiplier=2",
@@ -77,9 +75,7 @@ SETTINGS = [
     "jit=off",
 ]
 
-# Server-level settings. shared_buffers=4GB matches the original tpcds_sf*
-# databases. The six benchmark settings above are also set here so that
-# ordinary connections and benchmark connections start from the same values.
+
 POSTGRES_SERVER_SETTINGS = [
     "shared_buffers=4GB",
     "work_mem=512MB",
@@ -90,7 +86,6 @@ POSTGRES_SERVER_SETTINGS = [
     "jit=off",
 ]
 
-# The original benchmark command did not set a statement timeout (off).
 STATEMENT_TIMEOUT_MS = 0
 
 
@@ -464,8 +459,7 @@ def start_tools_container(runner: Runner, sf: int, run_id: str,
             "Remove that stale helper container with docker rm -f before retrying."
         )
 
-    # The Dockerfile does not COPY repository files, so build with a tiny context
-    # instead of sending the project's large benchmark/data folders to Docker.
+
     with tempfile.TemporaryDirectory(prefix="tpcds-tools-build-") as temp_context:
         context = Path(temp_context)
         dockerfile_copy = context / "Dockerfile.tpcds"
@@ -524,7 +518,7 @@ def ensure_data(
     force_regenerate: bool = False,
     require_existing: bool = False,
 ) -> bool:
-    """Generate once, then reuse verified files; optionally forbid regeneration."""
+    """Generate once, then reuse verified files for the future runs."""
     if not data_dir.is_dir():
         raise ExperimentError(
             f"Required data directory does not exist: {data_dir}. "
@@ -597,8 +591,6 @@ def ensure_data(
             "generating fresh TPC-DS data now."
         )
 
-    # Create the staging folder before starting the helper container so it is
-    # visible through the benchmark-test bind mount inside the tools container.
     staging_dir = Path(tempfile.mkdtemp(
         prefix=f".tpcds_sf{sf}_generation_", dir=str(data_dir.parent)
     ))
@@ -902,8 +894,6 @@ def set_database_defaults(runner: Runner, db: str) -> None:
 
 def effective_settings(runner: Runner, db: str, output_dir: Path) -> None:
     """Verify startup defaults, target-database defaults, and query-session SETs."""
-    # Connect to the maintenance database so ALTER DATABASE defaults on the
-    # experiment DB cannot mask the actual PostgreSQL server startup settings.
     server_checks = {
         "SERVER_SHARED_BUFFERS": ("shared_buffers", "4GB"),
         "SERVER_WORK_MEM": ("work_mem", "512MB"),
