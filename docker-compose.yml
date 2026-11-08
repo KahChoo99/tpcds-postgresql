@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16
     container_name: tpcds-postgres #main project container name
-    shm_size: '1gb'
+    shm_size: '2gb'
     environment:
       POSTGRES_DB: tpcds
       POSTGRES_USER: tpcds

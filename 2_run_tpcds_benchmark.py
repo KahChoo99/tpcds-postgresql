@@ -10,6 +10,12 @@ Two measurement modes:
 The whole suite is repeated for the number of runs given with -n / --runs
 (default 3). Input folder, output folder and database come from the command
 line.
+
+Session settings:
+  --set NAME=VALUE              applied to every query
+  --set-for Q1,Q2:NAME=VALUE    applied only to the listed queries, after the
+                                global --set values (so it overrides them),
+                                e.g. --set-for 4,11,74:enable_nestloop=off
 """
 import argparse
 import csv
@@ -19,6 +25,8 @@ import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+import ast
+import shutil
 
 
 def parse_queries(spec):
@@ -58,6 +66,23 @@ def split_statements(raw_sql):
     return [s.strip() for s in cleaned.split(";") if s.strip()]
 
 
+def parse_set_for(items):
+    """Turn ['4,11,74:enable_nestloop=off', ...] into
+    [([4, 11, 74], 'enable_nestloop', 'off'), ...]. Raises ValueError on bad input."""
+    parsed = []
+    for item in items:
+        try:
+            query_list, assignment = item.split(":", 1)
+            key, value = assignment.split("=", 1)
+            numbers = [int(q.strip()) for q in query_list.split(",")]
+        except ValueError:
+            raise ValueError(
+                f"bad --set-for value '{item}', expected Q1,Q2:NAME=VALUE "
+                f"(e.g. 4,11,74:enable_nestloop=off)")
+        parsed.append((numbers, key.strip(), value.strip()))
+    return parsed
+
+
 def psql_command(args):
     return [
         "docker", "exec", "-i", args.container,
@@ -85,14 +110,21 @@ def clean_output(output):
     return "\n".join(l for l in output.splitlines() if not skip.match(l)) + "\n"
 
 
-def run_query(args, statements):
-    """Execute all statements of one query once; return (seconds, output text)."""
+def run_query(args, statements, number=None):
+    """Execute all statements of one query once; return (seconds, output text).
+
+    `number` is the query number (e.g. 4 for Q04); it selects which --set-for
+    settings apply to this query."""
     setup = []
     if args.statement_timeout_ms:
         setup.append(f"SET statement_timeout = {args.statement_timeout_ms};")
     for item in args.set:
         key, value = item.split("=", 1)
         setup.append(f"SET {key.strip()} = '{value.strip()}';")
+    # per-query settings, applied after the global ones so they override them
+    for numbers, key, value in parse_set_for(args.set_for):
+        if number in numbers:
+            setup.append(f"SET {key} = '{value}';")
     setup_sql = "\n".join(setup) + "\n"
 
     if args.explain_analyze:
@@ -199,6 +231,7 @@ def main():
     p.add_argument("-n", "-r", "--runs", "--iterations", dest="iterations",
                    type=int, default=3,
                    help="how many times the whole suite is run (default 3)")
+    p.add_argument("--resume",action="store_true",help="Continue an existing benchmark without repeating completed runs")
     p.add_argument("--explain-analyze", action="store_true",
                    help="use EXPLAIN (ANALYZE, BUFFERS) and save every plan")
     p.add_argument("--order", choices=["query", "suite"], default="query",
@@ -211,7 +244,10 @@ def main():
     p.add_argument("--statement-timeout-ms", type=int, default=0,
                    help="abort any query running longer than this (0 = off)")
     p.add_argument("--set", action="append", default=[], metavar="NAME=VALUE",
-                   help="session setting, e.g. --set work_mem=256MB")
+                   help="session setting for every query, e.g. --set work_mem=256MB")
+    p.add_argument("--set-for", action="append", default=[], metavar="Q1,Q2:NAME=VALUE",
+                   help="session setting only for the listed queries (overrides --set), "
+                        "e.g. --set-for 4,11,74:enable_nestloop=off")
     p.add_argument("--no-save-results", action="store_true",
                    help="do not save result rows / plans")
     args = p.parse_args()
@@ -220,6 +256,10 @@ def main():
         p.error("--runs must be at least 1")
     if args.no_timing and not args.explain_analyze:
         p.error("--no-timing only works together with --explain-analyze")
+    try:
+        parse_set_for(args.set_for)
+    except ValueError as exc:
+        p.error(str(exc))
 
     input_dir = Path(args.input)
     output_dir = Path(args.output)
@@ -227,9 +267,12 @@ def main():
         p.error(f"Input directory not found: {input_dir}")
     csv_file = output_dir / "exec_time_details.csv"
     summary_file = output_dir / "benchmark_summary.txt"
-    if csv_file.exists() or summary_file.exists():
+    if args.resume:
+        if not csv_file.exists():
+            p.error(f"Cannot resume: CSV not found: {csv_file}")
+    elif csv_file.exists() or summary_file.exists():
         p.error("Results already exist in this directory. "
-                "Use a new output directory to preserve them.")
+            "Use --resume or a new output directory.")
     output_dir.mkdir(parents=True, exist_ok=True)
     save_dir = output_dir / ("plans" if args.explain_analyze else "results")
     if not args.no_save_results:
@@ -266,6 +309,88 @@ def main():
     errors = {n: [] for n in numbers}
     saved = set()
 
+    previous = {}
+
+    if args.resume:
+    # Read previous benchmark summary
+        if summary_file.exists():
+            for line in summary_file.read_text(encoding="utf-8").splitlines():
+                if ": " in line:
+                    key, value = line.split(": ", 1)
+                    previous[key] = value
+
+            expected = {
+                "Database": args.database,
+                "Method": method,
+                "Session settings applied": str(args.set or "none"),
+                "Per-query settings": str(args.set_for or "none"),
+                "Statement timeout (ms)": str(args.statement_timeout_ms or "off"),
+            }
+
+            for key, value in expected.items():
+                if key in previous and previous[key] != value:
+                    p.error(f"{key} differs from the previous benchmark")
+
+        # Read existing execution times
+        with csv_file.open(newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+
+            old_runs = sorted(
+                int(name.replace("exec_time_run_", ""))
+                for name in reader.fieldnames
+                if re.fullmatch(r"exec_time_run_\d+", name)
+            )
+
+            old_rows = {row["query"]: row for row in reader}
+
+        if not old_runs or old_runs != list(range(1, max(old_runs) + 1)):
+            p.error("Invalid run columns in existing CSV")
+
+        if max(old_runs) > args.iterations:
+            p.error("Existing CSV has more runs than requested")
+
+        if set(old_rows) != {f"Q{n:02d}" for n in numbers}:
+            p.error("Queries in existing CSV do not match selected queries")
+
+        for n in numbers:
+            row = old_rows[f"Q{n:02d}"]
+            error_text = row.get("error", "") or ""
+
+            errors[n] = [
+                e.strip() for e in error_text.split(" | ") if e.strip()
+            ]
+
+            attempted = max(
+                [0]
+                + [i for i in old_runs
+                   if (row.get(f"exec_time_run_{i}") or "").strip()]
+                + [int(i) for i in re.findall(r"\brun(\d+):", error_text)]
+                + ([max(old_runs)] if row["status"] in
+                   ("SUCCESS", "PARTIAL", "FAILED") else [])
+            )
+
+            for i in range(1, attempted + 1):
+                value = (row.get(f"exec_time_run_{i}") or "").strip()
+
+                if value:
+                    times[n].append(float(value))
+                elif re.search(rf"\brun{i}:", error_text):
+                    times[n].append(None)
+                else:
+                    p.error(f"Cannot determine Q{n:02d} run {i} status")
+
+        # Backup the original results
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+
+        for path in (csv_file, summary_file):
+            if path.exists():
+                backup = path.with_name(
+                    f"{path.stem}.backup_{stamp}{path.suffix}"
+                )
+                shutil.copy2(path, backup)
+
+        print("Previous benchmark results loaded successfully.")
+
     # The CSV is created right away and updated after every query
     def snapshot():
         write_csv(csv_file,
@@ -276,10 +401,27 @@ def main():
     start_ts = datetime.now(timezone.utc)
     start = time.perf_counter()
     if args.order == "query":
-        schedule = [(it, n) for n in numbers for it in range(1, args.iterations + 1)]
+        schedule = [
+            (it, n)
+            for n in numbers
+            for it in range(len(times[n]) + 1, args.iterations + 1)
+        ]
     else:
-        schedule = [(it, n) for it in range(1, args.iterations + 1) for n in numbers]
-    run_seconds = [0.0] * args.iterations
+        schedule = [
+            (it, n)
+            for it in range(1, args.iterations + 1)
+            for n in numbers
+            if len(times[n]) < it
+        ]
+
+    previous_run_seconds = ast.literal_eval(
+        previous.get("Time spent per run number (s)", "[]")
+    )
+    run_seconds = [
+        float(previous_run_seconds[i])
+        if i < len(previous_run_seconds) else 0.0
+        for i in range(args.iterations)
+    ]
 
     try:
         last_it = last_n = None
@@ -293,7 +435,7 @@ def main():
             secs, err = None, ""
             q_start = time.perf_counter()
             try:
-                secs, text = run_query(args, statements[n])
+                secs, text = run_query(args, statements[n], n)
                 print(f"Q{n:02d} run {it}/{args.iterations}: Success, "
                       f"Execution Time: {secs:.2f}s", flush=True)
             except Exception as exc:
@@ -333,7 +475,10 @@ def main():
 
         end_ts = datetime.now(timezone.utc)
         done = min(len(times[n]) for n in numbers)
-        total = time.perf_counter() - start
+        previous_wall = float(
+            previous.get("Total benchmark wall time (min)", "0")
+        ) * 60
+        total = previous_wall + (time.perf_counter() - start)
         good = [r for r in rows if r["status"] == "SUCCESS"]
         bad = [r["query"] for r in rows if r["status"] != "SUCCESS"]
         sum_avg = sum(r.get("avg_exec_time", 0) or 0 for r in rows)
@@ -341,11 +486,12 @@ def main():
         summary = (
             f"Database: {args.database}\n"
             f"Method: {method}\n"
-            f"Started UTC: {start_ts.isoformat()}\n"
+            f"Started UTC: {previous.get('Started UTC', start_ts.isoformat())}\n"
             f"Finished UTC: {end_ts.isoformat()}\n"
             f"Runs requested: {args.iterations}, completed for every query: {done}\n"
             f"Run order: {'all runs of a query back to back' if args.order == 'query' else 'whole suite repeated'}\n"
             f"Session settings applied: {args.set or 'none'}\n"
+            f"Per-query settings: {args.set_for or 'none'}\n"
             f"Statement timeout (ms): {args.statement_timeout_ms or 'off'}\n"
             f"Queries: {len(numbers)}\n"
             f"Fully successful queries: {len(good)}\n"
