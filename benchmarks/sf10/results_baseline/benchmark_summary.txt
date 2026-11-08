@@ -4,7 +4,7 @@ Started UTC: 2026-10-26T00:14:46.052756+00:00
 Finished UTC: 2026-10-26T08:19:00.765126+00:00
 Runs requested: 1, completed for every query: 1
 Run order: whole suite repeated
-Session settings applied: ['work_mem=256MB']
+Session settings applied: ['work_mem=512MB']
 Per-query settings: none
 Statement timeout (ms): off
 Queries: 99

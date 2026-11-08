@@ -4,7 +4,7 @@ Started UTC: 2026-10-28T22:58:34.000219+00:00
 Finished UTC: 2026-10-28T23:41:58.025198+00:00
 Runs requested: 3, completed for every query: 3
 Run order: whole suite repeated
-Session settings applied: ['work_mem=256MB', 'hash_mem_multiplier=2', 'max_parallel_workers_per_gather=4', 'effective_cache_size=10GB', 'random_page_cost=1.1', 'jit=off']
+Session settings applied: ['work_mem=512MB', 'hash_mem_multiplier=2', 'max_parallel_workers_per_gather=4', 'effective_cache_size=10GB', 'random_page_cost=1.1', 'jit=off']
 Per-query settings: none
 Statement timeout (ms): 600000
 Queries: 99
