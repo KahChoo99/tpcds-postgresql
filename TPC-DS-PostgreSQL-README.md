@@ -665,3 +665,62 @@ The main output files are:
 
 **Important:** In `summary.csv`, `results_match=True` confirms that the original and optimized queries returned identical result sets, including duplicate rows, regardless of row order. A missing value means the comparison could not be completed.
 
+
+
+## 9. Index Creation and Table Clustering SQL Files
+
+The following SQL files define the indexes and clustering operations used in the benchmark experiments. 
+
+- **`indexes_nonclustered_14.sql`**: Creates 14 regular (non-clustered) indexes on frequently accessed columns, including date, customer, and item attributes. These indexes aim to improve query performance without changing the physical order of table rows.
+
+- **`indexes_clustered_8.sql`**: Creates 8 regular indexes used in the clustered scenario. Four of these indexes are also used to determine the physical ordering of selected tables.
+
+- **`cluster_four_tables.sql`**: Uses PostgreSQL's `CLUSTER` command to physically reorder four tables (`catalog_sales`, `catalog_returns`, `store_sales`, and `web_sales`) based on their selected indexes. This aims to improve data locality and potentially reduce query execution time.
+
+
+They are used by the load test script to measure the additional time required for index creation and table clustering, and to support comparisons of query execution performance across database configurations.
+
+PostgreSQL does not have a separate `CREATE CLUSTERED INDEX` command. Instead, regular indexes are created first, and the `CLUSTER` command is then used to physically reorder the corresponding tables.
+
+After creating the indexes and clustering the selected tables, we reran the complete TPC-DS benchmark using `2_run_tpcds_benchmark.py` for each configuration. This allowed us to compare query execution times across the baseline, indexed, and clustered database configurations and evaluate the impact of these optimization techniques on query performance.
+
+## 10. Database Load Test
+
+The `4_load_test_independent_configured.py` script measures and compares database loading times under three different scenarios. Each scenario creates a separate PostgreSQL database using the same pre-generated TPC-DS data.
+
+The three scenarios are:
+- **Baseline:** Loads the database without additional indexes.
+- **Indexed:** Loads the database and creates  non-clustered indexes.
+- **Clustered:** Loads the database, creates 8 indexes, and clusters 4 tables.
+
+For each scenario, the script measures the total time required for schema creation, data loading (`COPY`), index creation, clustering (if applicable), and `ANALYZE`. Data generation is excluded from the measurement.
+
+### Running the Script
+
+Ensure the PostgreSQL Docker container is running and the TPC-DS data files have already been generated.
+
+From the project root directory, execute:
+
+```bash
+caffeinate -dims python3 4_load_test_independent_configured.py \
+  --sf 2 \
+  --run-id run1 \
+  --indexes-sql indexes_nonclustered_14.sql \
+  --clustered-indexes-sql indexes_clustered_8.sql \
+  --cluster-sql cluster_four_tables.sql
+```
+
+- `--sf`: Specifies the TPC-DS scale factor.
+- `--run-id`: Unique identifier for the experiment.
+- `--indexes-sql`: SQL file defining the non-clustered indexes.
+- `--clustered-indexes-sql`: SQL file defining the 8 indexes used in the clustered scenario.
+- `--cluster-sql`: SQL file containing the clustering commands.
+
+
+
+The execution results are automatically saved in:
+
+`benchmarks/sf{i}/results_load_independent/<run-id>/`
+
+This folder contains the total loading times, individual phase execution times, index creation times, configuration verification, and execution logs in CSV, JSON, and TXT formats.
+Each run requires a unique `run-id`, since the script creates new databases without overwriting existing ones.

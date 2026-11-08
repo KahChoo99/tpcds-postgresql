@@ -1013,7 +1013,8 @@ def benchmark(runner: Runner, sf: int, db: str, input_dir: Path, out: Path,
     cmd = [
         sys.executable, str(RUNNER),
         "-i", str(input_dir), "-o", str(out), "-d", db,
-        "-q", selection, "-n", str(runs),
+        "-q", ",".join(str(q) for q in sorted(query_selection(selection))),
+        "-n", str(runs),
     ]
     if STATEMENT_TIMEOUT_MS:
         cmd.extend(["--statement-timeout-ms", str(STATEMENT_TIMEOUT_MS)])
@@ -1118,6 +1119,7 @@ def main() -> int:
             raise ExperimentError("--benchmark-root cannot be the repository root itself.")
 
         sf_dir = benchmark_root / f"sf{args.sf}"
+        (sf_dir / "data").mkdir(parents=True, exist_ok=True)
         required_dirs = {
             "scale-factor directory": sf_dir,
             "data directory": sf_dir / "data",
