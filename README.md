@@ -150,7 +150,7 @@ To regenerate the dataset as well, use both:
 
 
 # Part B – Full manual workflow
-This part is the step-by-step workflow we used to produce all results of the report. 
+This part documents the manual workflow and commands for running the individual benchmark stages. Some examples reflect the current scripts and may differ from the settings used for the archived results presented in the report.
 
 ## 1. Environment and Project Structure
 
@@ -651,7 +651,7 @@ python3 2_run_tpcds_benchmark.py \
   -i benchmarks/sf2/queries \
   -o benchmarks/sf2/results_baseline \
   -d tpcds_sf2 \
-  -n 3 \
+  -n 1 \
   --set work_mem=512MB \
   --set hash_mem_multiplier=2 \
   --set max_parallel_workers_per_gather=4 \
@@ -670,7 +670,7 @@ python3 2_run_tpcds_benchmark.py \
 | `-i` | Directory containing the individual SQL query files. |
 | `-o` | Directory where benchmark results will be saved. |
 | `-d tpcds_sf2` | PostgreSQL database containing the SF2 dataset. |
-| `-n 3` | Executes the complete benchmark three times. |
+| `-n 1` | Executes the complete baseline benchmark once. |
 | `--set work_mem=512MB` | Sets the memory available for individual query operations such as sorting and hashing. |
 | `--set hash_mem_multiplier=2` | Allows hash operations to use up to twice the `work_mem` limit. |
 | `--set max_parallel_workers_per_gather=4` | Allows up to four parallel workers for eligible query operations. |
@@ -688,15 +688,13 @@ To store the results of running optimized queries on the baseline dataset and da
 
 The script measures the execution time of each query and records it in seconds.
 
-We use three complete benchmark iterations (`-n 3`) to reduce the influence of variations between individual executions.
+The reported baseline uses one complete benchmark pass (-n 1). The optimized scenarios use three iterations per query.
 
 The `--order suite` option determines the execution order:
 
 - **Run 1:** Q01 → Q02 → ... → Q99
-- **Run 2:** Q01 → Q02 → ... → Q99
-- **Run 3:** Q01 → Q02 → ... → Q99
 
-This approach allows us to observe query performance across repeated complete benchmark runs instead of executing the same query three times consecutively.
+For optimized scenarios with multiple iterations, suite ordering runs Q01–Q99 once per iteration, rather than executing each query repeatedly before moving to the next.
 
 Some TPC-DS query files contain multiple SQL statements. The script executes all statements in the file and sums their execution times to obtain the query's total execution time.
 
@@ -715,7 +713,7 @@ sf2_baseline.log
 
 **`exec_time_details.csv`**
 
-Contains the execution time of each query across the three iterations, including:
+Contains the execution time of each query for the selected number of iterations (one in the reported baseline), including:
 
 - Query identifier (Q01–Q99).
 - Execution status (`SUCCESS`, `PARTIAL`, or `FAILED`).
@@ -854,3 +852,5 @@ The execution results are automatically saved in:
 
 This folder contains the total loading times, individual phase execution times, index creation times, configuration verification, and execution logs in CSV, JSON, and TXT formats.
 Each run requires a unique `run-id`, since the script creates new databases without overwriting existing ones.
+
+These scripts describe the current configurable load-test workflow and should not be assumed to represent the exact index inventories of every archived query-performance run.
