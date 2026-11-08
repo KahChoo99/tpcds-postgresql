@@ -1,30 +1,4 @@
 #!/usr/bin/env python3
-"""Reproduce the optimized + clustered TPC-DS/PostgreSQL benchmark.
-
-Run from the tpcds-postgresql project root:
-    python3 5_run_complete_tpcds_experiment.py --sf 1
-
-Requires Docker Desktop/Engine, Dockerfile.tpcds, the TPC-DS source tree,
-optimized query files under benchmark-test/sf<sf>/optimized_queries/, and the
-existing 2_run_tpcds_benchmark.py. Uses only Python's standard library.
-
-All test-only data, query inputs, and results live under ./benchmark-test by
-default (configurable with --benchmark-root). The user must create the scale
-factor directory structure and place queries/optimized_queries in it before
-running the script. The script does NOT create the benchmark root or its
-standard folders. It only generates data into the existing data/ folder when
-no valid generation manifest exists (or --regenerate-data is supplied), then
-creates one persistent PostgreSQL container, volume, and database per scale
-factor. The first run initializes its schema, data, indexes, and clustering.
-Later runs for that scale factor reuse the same database and indexes. Each run
-gets a separate results folder under the pre-existing results/ folder.
-
-Index creation and physical clustering always use the two supplied SQL files:
-indexes_clustered_8.sql creates exactly eight custom indexes, then
-cluster_four_tables.sql physically clusters exactly four selected tables.
-There are no alternative or hard-coded index profiles in this script.
-"""
-
 from __future__ import annotations
 
 import argparse
